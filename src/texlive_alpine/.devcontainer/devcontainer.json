@@ -3,6 +3,5 @@
 	"dockerFile": "Dockerfile",
 	"extensions": [
 		"james-yu.latex-workshop"
-		
 	]
 }
