@@ -1,5 +1,5 @@
 #!/bin/sh
-error=0
+error=1
 
 mkdir /tmp/pdflatex
 pdflatex -output-directory=/tmp/pdflatex small2e
