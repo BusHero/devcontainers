@@ -1,0 +1,11 @@
+{
+	"id": "texlive",
+	"version": "1.0.0",
+	"name": "TexLive (Alpine)",
+	"description": "A small container with tex live",
+    "documentationURL": "https://github.com/devcontainers/template-starter/tree/main/src/hello",
+    "licenseURL": "https://github.com/devcontainers/template-starter/blob/main/LICENSE",
+    "platforms": [
+        "Any"
+    ]
+}
