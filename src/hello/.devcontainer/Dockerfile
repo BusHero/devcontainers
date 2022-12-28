@@ -10,7 +10,8 @@ RUN apk update \
 	alpine-sdk \
 	texlive \
 	biber \
-	dotnet7-sdk
+	dotnet7-sdk \
+    bash
 
 RUN curl -L http://cpanmin.us | perl - App::cpanminus \
 	&& cpanm Log::Dispatch::File \
