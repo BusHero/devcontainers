@@ -1,6 +1,6 @@
 {
     "id": "hello",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "name": "Hello, World",
     "description": "A hello world Template",
     "documentationURL": "https://github.com/devcontainers/template-starter/tree/main/src/hello",
