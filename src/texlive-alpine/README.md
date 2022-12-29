@@ -1,7 +1,7 @@
 
-# Hello, World (hello)
+# Alpine TexLive (texlive-alpine)
 
-A hello world Template
+A template for TexLive with Alpine linux
 
 ## Options
 
@@ -14,4 +14,4 @@ A hello world Template
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/BusHero/devcontainer-template-test/blob/main/src/hello/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/BusHero/devcontainer-template-test/blob/main/src/texlive-alpine/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
