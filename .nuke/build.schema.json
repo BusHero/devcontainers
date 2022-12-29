@@ -65,7 +65,8 @@
             "type": "string",
             "enum": [
               "Compile",
-              "InstallDevContainersCli"
+              "InstallDevContainersCli",
+              "UpTemplate"
             ]
           }
         },
@@ -76,7 +77,8 @@
             "type": "string",
             "enum": [
               "Compile",
-              "InstallDevContainersCli"
+              "InstallDevContainersCli",
+              "UpTemplate"
             ]
           }
         },

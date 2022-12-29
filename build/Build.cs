@@ -8,6 +8,7 @@ class Build : NukeBuild
 	public static int Main() => Execute<Build>(x => x.Compile);
 
 	[PathExecutable("bash")] readonly Tool Bash;
+	[PathExecutable("devcontainer")] readonly Tool DevContainer;
 
 	[Parameter("Template to build")] readonly string Template;
 
@@ -20,4 +21,14 @@ class Build : NukeBuild
 		.Requires(() => Template)
 		.DependsOn(InstallDevContainersCli)
 		.Executes(() => Bash($"./scripts/build.sh {Template}"));
+
+	Target UpTemplate => _ => _
+		.Requires(() => Template)
+		.DependsOn(InstallDevContainersCli)
+		.Executes(() =>
+		{
+			var sourceDir = $"/tmp/{Template}";
+			var idLabel = $"test-container={Template}";
+			DevContainer($"up --id-label {idLabel} --workspace-folder {sourceDir}");
+		});
 }
