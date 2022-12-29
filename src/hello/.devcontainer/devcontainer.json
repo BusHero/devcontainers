@@ -1,5 +1,5 @@
 {
-	"name": "Hello, World",
+	"name": "Alpine TexLive",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},

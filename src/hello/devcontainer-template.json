@@ -1,8 +1,8 @@
 {
-    "id": "hello",
+    "id": "alpine-texlive",
     "version": "1.3.0",
-    "name": "Hello, World",
-    "description": "A hello world Template",
+    "name": "Alpine TexLive",
+    "description": "A template for TexLive with Alpine linux",
     "documentationURL": "https://github.com/devcontainers/template-starter/tree/main/src/hello",
     "licenseURL": "https://github.com/devcontainers/template-starter/blob/main/LICENSE",
     "options": {
