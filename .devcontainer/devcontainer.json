@@ -14,5 +14,8 @@
 			]
 		}
 	},
-	"postCreateCommand": "npm install -g @devcontainers/cli; dotnet tool install Nuke.GlobalTool --global"
+	"postCreateCommand": {
+		"devcontainers": "npm install -g @devcontainers/cli",
+		"nuke": "dotnet tool install Nuke.GlobalTool --global"
+	}
 }
