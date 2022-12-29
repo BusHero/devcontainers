@@ -1,16 +1,18 @@
-// More info: https://containers.dev/implementors/json_reference/
 {
 	"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
 	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/dotnet": {}
 	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"mads-hartmann.bash-ide-vscode",
-				"dbaeumer.vscode-eslint"
+				"dbaeumer.vscode-eslint",
+				"ms-dotnettools.csharp",
+				"nuke.support"
 			]
 		}
 	},
-	"postCreateCommand": "npm install -g @devcontainers/cli"
+	"postCreateCommand": "npm install -g @devcontainers/cli; dotnet tool install Nuke.GlobalTool --global"
 }
