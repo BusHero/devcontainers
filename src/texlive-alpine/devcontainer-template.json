@@ -1,5 +1,5 @@
 {
-    "id": "alpine-texlive",
+    "id": "texlive-alpine",
     "version": "1.5.0",
     "name": "Alpine TexLive",
     "description": "A template for TexLive with Alpine linux",
