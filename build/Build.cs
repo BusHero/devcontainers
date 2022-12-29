@@ -15,20 +15,12 @@ class Build : NukeBuild
 {
 	public static int Main() => Execute<Build>(x => x.Compile);
 
-	Target Clean => _ => _
-		.Before(Restore)
-		.Executes(() =>
-		{
-		});
-
-	Target Restore => _ => _
-		.Executes(() =>
-		{
-		});
+	[PathExecutable("/bin/bash")] readonly Tool Bash;
 
 	Target Compile => _ => _
-		.DependsOn(Restore)
 		.Executes(() =>
 		{
+			Bash("./scripts/build.sh color");
 		});
+
 }
