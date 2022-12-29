@@ -7,7 +7,7 @@ class Build : NukeBuild
 {
 	public static int Main() => Execute<Build>(x => x.Compile);
 
-	[PathExecutable("/bin/bash")] readonly Tool Bash;
+	[PathExecutable("bash")] readonly Tool Bash;
 
 	[Parameter("Template to build")] readonly string Template;
 
