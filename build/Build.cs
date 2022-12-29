@@ -17,10 +17,10 @@ class Build : NukeBuild
 
 	[PathExecutable("/bin/bash")] readonly Tool Bash;
 
+	[Parameter("Template to build")] readonly string Template;
+
 	Target Compile => _ => _
-		.Executes(() =>
-		{
-			Bash("./scripts/build.sh color");
-		});
+		.Requires(() => Template)
+		.Executes(() => Bash($"./scripts/build.sh {Template}"));
 
 }

@@ -78,6 +78,10 @@
             ]
           }
         },
+        "Template": {
+          "type": "string",
+          "description": "Template to build"
+        },
         "Verbosity": {
           "type": "string",
           "description": "Logging verbosity during build execution. Default is 'Normal'",
