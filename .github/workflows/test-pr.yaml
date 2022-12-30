@@ -1,6 +1,7 @@
 name: "CI - Test Templates"
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   detect-changes:
@@ -25,9 +26,8 @@ jobs:
         templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
-
+        with:
+          fetch-depth: 0
       - name: Smoke test for '${{ matrix.templates }}'
         id: smoke_test
-        uses: ./.github/actions/smoke-test
-        with:
-          template: "${{ matrix.templates }}"
+        run: ./build.sh --template "${{ matrix.templates }}"
