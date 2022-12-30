@@ -6,13 +6,13 @@ sealed class Build : NukeBuild
 {
 	public static int Main() => Execute<Build>(x => x.BuildTemplate);
 
-	[PathExecutable("bash")] readonly Tool Bash;
+	[PathExecutable("bash")] private readonly Tool Bash;
 
-	[Parameter("Template to build")] readonly string Template;
+	[Parameter("Template to build")] private readonly string Template;
 
 	private AbsolutePath Scripts => RootDirectory / "scripts";
 
-	Target BuildTemplate => _ => _
+	private Target BuildTemplate => _ => _
 		.Requires(() => Template)
 		.Executes(() => Bash($"{Scripts / "build.sh"} {Template}"));
 }
