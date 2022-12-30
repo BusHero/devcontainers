@@ -15,4 +15,8 @@ sealed class Build : NukeBuild
 	private Target BuildTemplate => _ => _
 		.Requires(() => Template)
 		.Executes(() => Bash($"{Scripts / "build.sh"} {Template}"));
+
+	private Target TestTemplate => _ => _
+		.Requires(() => Template)
+		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 }
