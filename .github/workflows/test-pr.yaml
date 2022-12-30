@@ -16,7 +16,6 @@ jobs:
             color: ./**/color/**
             hello: ./**/hello/**
             texlive_alpine: ./**/texlive_alpine/**
-
   test:
     needs: [detect-changes]
     runs-on: ubuntu-latest
