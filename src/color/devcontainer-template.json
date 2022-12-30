@@ -21,7 +21,8 @@
             "proposals": [
                 "red",
                 "gold",
-                "green"
+                "green",
+                "blue"
             ],
             "default": "red"
         }
