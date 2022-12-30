@@ -45,8 +45,8 @@ fi
 
 export DOCKER_BUILDKIT=1
 echo "(*) Installing @devcontainer/cli"
-npm install -g @devcontainers/cli
+npm install -g @devcontainers/cli 2>&1
 
 echo "Building Dev Container"
 ID_LABEL="test-container=${TEMPLATE_ID}"
-devcontainer up --id-label ${ID_LABEL} --workspace-folder "${SRC_DIR}"
+devcontainer up --id-label ${ID_LABEL} --workspace-folder "${SRC_DIR}" 2>&1
