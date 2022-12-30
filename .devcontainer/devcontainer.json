@@ -11,7 +11,8 @@
 				"mads-hartmann.bash-ide-vscode",
 				"dbaeumer.vscode-eslint",
 				"ms-dotnettools.csharp",
-				"nuke.support"
+				"nuke.support",
+				"redhat.vscode-yaml"
 			]
 		}
 	},
