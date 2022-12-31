@@ -35,7 +35,7 @@ sealed class Build : NukeBuild
 		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
-			var devcontainer = ToolResolver.GetNpmTool("devcontainer");
+			var devcontainer = ToolResolver.GetPathTool("devcontainer");
 			return devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test");
 		});
 }
