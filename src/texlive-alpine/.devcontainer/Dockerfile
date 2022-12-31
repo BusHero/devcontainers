@@ -11,7 +11,7 @@ RUN apk update \
 	texlive \
 	biber \
 	dotnet7-sdk \
-    bash
+	bash
 
 RUN curl -L http://cpanmin.us | perl - App::cpanminus \
 	&& cpanm Log::Dispatch::File \
@@ -22,6 +22,3 @@ RUN curl -L http://cpanmin.us | perl - App::cpanminus \
 RUN wget https://mirrors.ctan.org/macros/latex/contrib/logreq.zip \
 	&& unzip /logreq.zip -d /usr/share/texmf-dist/tex/latex/contrib \
 	&& mktexlsr
-
-RUN mkdir -p /usr/local/etc \
-    && echo "${templateOption:greeting}" > /usr/local/etc/greeting.txt
