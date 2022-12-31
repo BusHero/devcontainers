@@ -65,6 +65,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "PublishTemplate",
               "TestTemplate"
             ]
           }
@@ -76,6 +77,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "PublishTemplate",
               "TestTemplate"
             ]
           }
