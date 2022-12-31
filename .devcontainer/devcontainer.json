@@ -12,7 +12,8 @@
 				"dbaeumer.vscode-eslint",
 				"ms-dotnettools.csharp",
 				"nuke.support",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"GitHub.vscode-pull-request-github"
 			]
 		}
 	},
