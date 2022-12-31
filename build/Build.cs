@@ -1,6 +1,8 @@
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using static Nuke.Common.Tools.Npm.NpmTasks;
+using Nuke.Common.Tools.Npm;
 
 sealed class Build : NukeBuild
 {
@@ -23,6 +25,13 @@ sealed class Build : NukeBuild
 		.Requires(() => Template)
 		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 
+	private Target InstallDevcontainer => _ => _
+		.Unlisted()
+		.Executes(() => NpmInstall(_ => _
+			.AddPackages("@devcontainers/cli")
+			.SetGlobal(true)));
+
 	private Target PublishTemplate => _ => _
+		.DependsOn(InstallDevcontainer)
 		.Executes(() => Devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test"));
 }
