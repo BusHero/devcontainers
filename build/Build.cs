@@ -9,7 +9,7 @@ sealed class Build : NukeBuild
 	public static int Main() => Execute<Build>(x => x.BuildTemplate);
 
 	[PathExecutable("bash")] private readonly Tool Bash;
-	[PathExecutable("devcontainer")] private readonly Tool Devcontainer;
+	// [PathExecutable("devcontainer")] private readonly Tool Devcontainer;
 
 	[Parameter("Template to build")] private readonly string Template;
 
@@ -33,5 +33,9 @@ sealed class Build : NukeBuild
 
 	private Target PublishTemplate => _ => _
 		.DependsOn(InstallDevcontainer)
-		.Executes(() => Devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test"));
+		.Executes(() =>
+		{
+			var devcontainer = ToolResolver.GetNpmTool("devcontainer");
+			return devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test");
+		});
 }
