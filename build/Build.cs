@@ -16,15 +16,13 @@ sealed class Build : NukeBuild
 
 	private Target BuildTemplate => _ => _
 		.Requires(() => Template)
+		.Triggers(TestTemplate)
 		.Executes(() => Bash($"{Scripts / "build.sh"} {Template}"));
 
 	private Target TestTemplate => _ => _
 		.Requires(() => Template)
-		.DependsOn(BuildTemplate)
 		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 
 	private Target PublishTemplate => _ => _
-		.Requires(() => Template)
-		.DependsOn(TestTemplate)
-		.Executes(() => Devcontainer($"templates publish {Source / Template} --namespace BusHero/devcontainer-template-test"));
+		.Executes(() => Devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test"));
 }
