@@ -8,14 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: "Publish Templates"
-        uses: devcontainers/action@v1
         with:
-          publish-templates: "true"
-          base-path-to-templates: "./src"
-          generate-docs: "true"
-
+          fetch-depth: 0
+      - name: "Publish Templates"
+        run: ./build.sh PublishTemplate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
