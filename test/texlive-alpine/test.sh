@@ -3,6 +3,9 @@
 cd $(dirname "$0")
 source test-utils.sh
 
-check "bash" bash --version >/dev/null
+for script in tests/*.sh
+do
+	check "$script" . $script
+done
 
 reportResults
