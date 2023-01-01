@@ -56,7 +56,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: "Publish Features"
-        run: ./build.sh PublishFeature --feature texlive2
+        run: ./build.sh PublishFeature
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create PR for Documentation
