@@ -1,5 +1,12 @@
 {
 	"id": "texlive",
 	"version": "1.8.0",
-	"name": "texlive"
+	"name": "texlive",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"james-yu.latex-workshop"
+			]
+		}
+	}
 }
