@@ -18,6 +18,6 @@ sealed partial class Build
 		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
-			return Devcontainer($"features publish {Features / "src"} --namespace BusHero/devcontainer-template-test");
+			return Devcontainer($"features publish {Features / "src"} --namespace BusHero/devcontainer-template-test/features");
 		});
 }
