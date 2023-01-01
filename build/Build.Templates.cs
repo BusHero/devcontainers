@@ -4,7 +4,7 @@ using Nuke.Common.IO;
 sealed partial class Build
 {
 	private AbsolutePath Scripts => RootDirectory / "scripts";
-	private AbsolutePath Source => RootDirectory / "src";
+	private AbsolutePath Source => RootDirectory / "templates" / "src";
 
 	[Parameter("Template to build")] private readonly string Template;
 
