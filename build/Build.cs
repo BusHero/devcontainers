@@ -5,7 +5,6 @@ using Nuke.Common.Tools.Npm;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitHub;
 
-
 sealed partial class Build : NukeBuild
 {
 	public static int Main() => Execute<Build>(x => x.BuildTemplate);
@@ -22,5 +21,4 @@ sealed partial class Build : NukeBuild
 	[GitRepository] private readonly GitRepository Repository;
 
 	private string GitHubNamespace => $"{Repository.GetGitHubOwner()}/{Repository.GetGitHubName()}";
-
 }
