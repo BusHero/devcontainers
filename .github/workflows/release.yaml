@@ -53,17 +53,12 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v3
-
-      - name: "Publish Features"
-        uses: devcontainers/action@v1
         with:
-          publish-features: "true"
-          base-path-to-features: "./features/src"
-          generate-docs: "true"
-
+          fetch-depth: 0
+      - name: "Publish Features"
+        run: ./build.sh PublishFeature --feature texlive
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create PR for Documentation
         id: push_image_info
         env:
