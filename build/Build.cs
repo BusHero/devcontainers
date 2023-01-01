@@ -4,7 +4,7 @@ using Nuke.Common.Tooling;
 using static Nuke.Common.Tools.Npm.NpmTasks;
 using Nuke.Common.Tools.Npm;
 
-sealed class Build : NukeBuild
+sealed partial class Build : NukeBuild
 {
 	public static int Main() => Execute<Build>(x => x.BuildTemplate);
 
