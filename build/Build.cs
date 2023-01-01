@@ -35,6 +35,6 @@ sealed partial class Build : NukeBuild
 		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
-			return Devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test");
+			return Devcontainer($"templates publish {Source} --namespace BusHero/devcontainer-template-test/features");
 		});
 }
