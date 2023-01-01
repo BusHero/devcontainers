@@ -72,7 +72,6 @@
               "InstallDevcontainer",
               "PublishFeatures",
               "PublishTemplate",
-              "ShowGithubInfo",
               "TestFeature",
               "TestTemplate"
             ]
@@ -88,7 +87,6 @@
               "InstallDevcontainer",
               "PublishFeatures",
               "PublishTemplate",
-              "ShowGithubInfo",
               "TestFeature",
               "TestTemplate"
             ]
