@@ -11,7 +11,7 @@ sealed partial class Build
 		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
-			return Devcontainer($"features test --features {Feature} -i alpine:latest --project-folder {Features}");
+			return Devcontainer($"features test --features {Feature} --base-image alpine:latest --project-folder {Features}");
 		});
 
 	private Target PublishFeature => _ => _
