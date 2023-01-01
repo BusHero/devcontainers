@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-templates:
+    name: Deploy Templates
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
