@@ -14,4 +14,11 @@ sealed partial class Build
 			return Devcontainer($"features test -f {Feature} -i alpine:latest --project-folder {Features}");
 		});
 
+	private Target PublishFeature => _ => _
+		.Requires(() => Feature)
+		.DependsOn(InstallDevcontainer)
+		.Executes(() =>
+		{
+			return Devcontainer($"features publish {Features / "src" / Feature} --namespace BusHero/devcontainer-template-test");
+		});
 }

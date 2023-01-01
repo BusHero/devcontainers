@@ -70,6 +70,7 @@
             "enum": [
               "BuildTemplate",
               "InstallDevcontainer",
+              "PublishFeature",
               "PublishTemplate",
               "TestFeature",
               "TestTemplate"
@@ -84,6 +85,7 @@
             "enum": [
               "BuildTemplate",
               "InstallDevcontainer",
+              "PublishFeature",
               "PublishTemplate",
               "TestFeature",
               "TestTemplate"
