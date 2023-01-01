@@ -2,6 +2,9 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using static Nuke.Common.Tools.Npm.NpmTasks;
 using Nuke.Common.Tools.Npm;
+using Nuke.Common.Git;
+using Nuke.Common.Tools.GitHub;
+
 
 sealed partial class Build : NukeBuild
 {
@@ -15,5 +18,9 @@ sealed partial class Build : NukeBuild
 		.Executes(() => NpmInstall(_ => _
 			.AddPackages("@devcontainers/cli")
 			.SetGlobal(true)));
+
+	[GitRepository] private readonly GitRepository Repository;
+
+	private string GitHubNamespace => $"{Repository.GetGitHubOwner()}/{Repository.GetGitHubName()}";
 
 }
