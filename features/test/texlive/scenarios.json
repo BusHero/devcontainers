@@ -1,0 +1,9 @@
+{
+	"test": {
+		"image": "alpine:latest",
+		"features": {
+			"cpanm": {},
+			"texlive": {}
+		}
+	}
+}
