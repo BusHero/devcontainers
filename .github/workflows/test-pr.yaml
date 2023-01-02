@@ -13,8 +13,8 @@ jobs:
         id: filter
         with:
           filters: |
-            color: ./**/color/**
-            hello: ./**/hello/**
+            color: ./**/templates/color/**
+            hello: ./**/templates/hello/**
             texlive-alpine: ./**/texlive-alpine/**
   test:
     needs: [detect-changes]
