@@ -1,4 +1,5 @@
 {
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
 	"id": "texlive",
 	"version": "1.9.0",
 	"name": "texlive",
@@ -8,5 +9,8 @@
 				"james-yu.latex-workshop"
 			]
 		}
-	}
+	},
+	"installsAfter": [
+		"ghcr.io/bushero/devcontainer-template-test/features/cpanm:latest"
+	]
 }
