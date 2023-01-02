@@ -11,6 +11,6 @@
 		}
 	},
 	"installsAfter": [
-		"./cpanm"
+		"ghcr.io/bushero/devcontainer-template-test/features/cpanm:latest"
 	]
 }
