@@ -9,5 +9,8 @@
 				"ms-dotnettools.csharp"
 			]
 		}
+	},
+	"containerEnv": {
+		"PATH": "/root/.dotnet/tools:${PATH}"
 	}
 }
