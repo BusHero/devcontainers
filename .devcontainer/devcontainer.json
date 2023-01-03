@@ -18,7 +18,7 @@
 		}
 	},
 	"postCreateCommand": {
-		"devcontainers": "npm install -g @devcontainers/cli",
+		"devcontainers": "npm install -g @devcontainers/cli@0.27.0",
 		"nuke": "dotnet tool install Nuke.GlobalTool --global",
 		"restore": "dotnet restore build",
 		"git": "git config --global --add safe.directory /workspaces/devcontainer-template-test"
