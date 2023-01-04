@@ -1,11 +1,12 @@
 #!/bin/sh
 
-apk update \
-	&& apk upgrade \
-	&& apk add \
+apk update
+apk upgrade
+apk add \
 	alpine-sdk \
 	texlive \
 	biber \
+	perl-app-cpanminus
 	bash
 
 cpanm Log::Dispatch::File
