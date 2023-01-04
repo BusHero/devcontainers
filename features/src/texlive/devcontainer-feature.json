@@ -9,8 +9,5 @@
 				"james-yu.latex-workshop"
 			]
 		}
-	},
-	"installsAfter": [
-		"ghcr.io/bushero/devcontainer-template-test/features/cpanm:latest"
-	]
+	}
 }
