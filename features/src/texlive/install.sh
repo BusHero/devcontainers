@@ -3,17 +3,37 @@
 apk update
 apk upgrade
 apk add \
-	alpine-sdk \
-	texlive \
-	biber \
-	perl-app-cpanminus
-	bash
+  alpine-sdk \
+  freetype \
+  fontconfig \
+  gnupg \
+  gzip \
+  perl \
+  tar \
+  wget \
+  xz \
+  perl-app-cpanminus \
+  perl-dev \
+  bash
 
 cpanm Log::Dispatch::File
 cpanm File::HomeDir
 cpanm Unicode::GCString
 cpanm YAML::Tiny
 
-wget https://mirrors.ctan.org/macros/latex/contrib/logreq.zip \
-	&& unzip logreq.zip -d /usr/share/texmf-dist/tex/latex/contrib \
-	&& mktexlsr
+TEXLIVE_ARCH="$(uname -m)-linuxmusl"
+mkdir -p ${texlive_bin}
+ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default"
+
+mkdir -p /root
+cp common/* /root/
+cd /root
+
+echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile \
+  && /root/install-texlive.sh $texlive_version \
+  && sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
+  xargs tlmgr install \
+  && rm -f /root/texlive.profile \
+  /root/install-texlive.sh \
+  /root/packages.txt \
+  && TERM=dumb luaotfload-tool --update

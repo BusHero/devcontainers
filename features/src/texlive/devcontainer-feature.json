@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
 	"id": "texlive",
-	"version": "1.14.0",
+	"version": "2.0.0",
 	"name": "texlive",
 	"customizations": {
 		"vscode": {
@@ -9,5 +9,9 @@
 				"james-yu.latex-workshop"
 			]
 		}
+	},
+	"containerEnv": {
+		"texlive_bin": "/opt/texlive/texdir/bin",
+		"PATH": "${texlive_bin}/default:${PATH}"
 	}
 }
