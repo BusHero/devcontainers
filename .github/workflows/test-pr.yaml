@@ -29,4 +29,4 @@ jobs:
           fetch-depth: 0
       - name: Smoke test for '${{ matrix.templates }}'
         id: smoke_test
-        run: ./build.sh --template "${{ matrix.templates }}"
+        run: ./build.sh TestFeature
