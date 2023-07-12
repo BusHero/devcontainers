@@ -1,13 +1,18 @@
 {
-	"dotnet-installed": {
-		"image": "alpine:latest",
+	"debian": {
+		"image": "debian:latest",
 		"features": {
-			"ghcr.io/bushero/devcontainer-template-test/features/dotnet:1.1.0": {},
 			"nuke": {}
 		}
 	},
-	"dotnet-not-installed": {
+	"alpine": {
 		"image": "alpine:latest",
+		"features": {
+			"nuke": {}
+		}
+	},
+	"dotnet-installed": {
+		"image": "mcr.microsoft.com/dotnet/sdk:7.0-alpine",
 		"features": {
 			"nuke": {}
 		}
