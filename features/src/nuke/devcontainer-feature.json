@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
 	"id": "nuke",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"name": "nuke build",
 	"customizations": {
 		"vscode": {
