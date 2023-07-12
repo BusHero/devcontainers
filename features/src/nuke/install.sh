@@ -1,6 +1,9 @@
 #!/bin/sh
 
-apk update
-apk upgrade
-apk add dotnet7-sdk
+if command -v apt; then
+	sh install-dotnet-debian.sh
+elif command -v apk; then
+	sh install-dotnet-alpine.sh
+fi
+
 dotnet tool install Nuke.GlobalTool --global
