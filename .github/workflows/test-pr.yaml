@@ -16,6 +16,7 @@ jobs:
             color: ./**/templates/color/**
             hello: ./**/templates/hello/**
             texlive-alpine: ./**/texlive-alpine/**
+            bash: ./**/bash/**
   test:
     needs: [detect-changes]
     runs-on: ubuntu-latest
