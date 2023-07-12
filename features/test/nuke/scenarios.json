@@ -1,0 +1,15 @@
+{
+	"dotnet-installed": {
+		"image": "alpine:latest",
+		"features": {
+			"ghcr.io/bushero/devcontainer-template-test/features/dotnet:1.1.0": {},
+			"nuke": {}
+		}
+	},
+	"dotnet-not-installed": {
+		"image": "alpine:latest",
+		"features": {
+			"nuke": {}
+		}
+	}
+}
