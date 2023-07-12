@@ -2,6 +2,6 @@
 
 source dev-container-features-test-lib
 
-check "devcontainer installed" bash -c "command -v devcontainer"
+check "devcontainer installed" command -v devcontainer
 
 reportResults

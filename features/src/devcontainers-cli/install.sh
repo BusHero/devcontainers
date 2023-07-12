@@ -5,4 +5,10 @@ apk add --update \
 	python3 \
 	make \
 	g++
-npm install -g @devcontainers/cli@0.49.0
+
+
+if [ $VERSION ]; then
+	VERSION=@${VERSION};
+fi
+
+npm install -g @devcontainers/cli$VERSION
