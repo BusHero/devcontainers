@@ -1,6 +1,7 @@
 {
 	"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
 	"features": {
+		"ghcr.io/bushero/devcontainer-template-test/features/nuke:latest": {},
 		"ghcr.io/bushero/devcontainer-template-test/features/devcontainers-cli:latest": {
 			"version": "0.49.0"
 		},
@@ -14,14 +15,12 @@
 				"mads-hartmann.bash-ide-vscode",
 				"dbaeumer.vscode-eslint",
 				"ms-dotnettools.csharp",
-				"nuke.support",
 				"redhat.vscode-yaml",
 				"GitHub.vscode-pull-request-github"
 			]
 		}
 	},
 	"postCreateCommand": {
-		"nuke": "dotnet tool install Nuke.GlobalTool --version 6.3.0 --global",
 		"restore": "dotnet restore build",
 		"git": "git config --global --add safe.directory /workspaces/devcontainer-template-test"
 	}
