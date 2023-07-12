@@ -2,7 +2,8 @@
 	"test-dev-containers": {
 		"image": "alpine:latest",
 		"features": {
-			"ghcr.io/devcontainers-contrib/features/bash-command:1": {}
+			"devcontainers-cli": {},
+			"bash": {}
 		}
 	}
 }

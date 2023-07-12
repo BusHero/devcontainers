@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-# source dev-container-features-test-lib
+source dev-container-features-test-lib
 
-# check "execute command" bash -c "ls"
+check "devcontainer installed" bash -c "command -v devcontainer"
 
-# reportResults
+reportResults
