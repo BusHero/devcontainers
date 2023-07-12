@@ -1,0 +1,13 @@
+{
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+	"id": "devcontainers-cli",
+	"version": "1.0.0",
+	"name": "devcontainers cli",
+	"options": {
+		"version": {
+			"type": "string",
+			"default": "",
+			"description": "choose the version"
+		}
+	}
+}

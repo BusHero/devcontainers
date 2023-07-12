@@ -1,0 +1,18 @@
+{
+	"test-dev-containers": {
+		"image": "alpine:latest",
+		"features": {
+			"devcontainers-cli": {},
+			"ghcr.io/bushero/devcontainer-template-test/features/bash:latest": {}
+		}
+	},
+	"test-dev-containers-version": {
+		"image": "alpine:latest",
+		"features": {
+			"devcontainers-cli": {
+				"version": "0.39.0"
+			},
+			"ghcr.io/bushero/devcontainer-template-test/features/bash:latest": {}
+		}
+	}
+}
