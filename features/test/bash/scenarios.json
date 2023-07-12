@@ -1,0 +1,14 @@
+{
+	"alpine": {
+		"image": "alpine:latest",
+		"features": {
+			"bash": {}
+		}
+	},
+	"debian": {
+		"image": "debian:latest",
+		"features": {
+			"bash": {}
+		}
+	}
+}
