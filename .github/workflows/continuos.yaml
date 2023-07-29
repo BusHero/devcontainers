@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
       - name: "find all templates"
         id: templates
-        run: find templates -maxdepth 1 -type d
+        run: find templates/src -maxdepth 1 -type d
   # test:
   #   name: "Hey there: ${{ matrix.templates }}"
   #   runs-on: ubuntu-latest
