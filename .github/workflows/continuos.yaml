@@ -31,4 +31,4 @@ jobs:
       # - name: Run test for '${{ matrix.templates }}'
       - name: foo
         id: smoke_test
-        run: echo '${{ (needs.detect-changes.outputs.templates }}'
+        run: echo '${{ needs.detect-changes.outputs.templates }}'
