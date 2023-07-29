@@ -1,5 +1,7 @@
 using Nuke.Common;
 using Nuke.Common.IO;
+using System;
+using System.IO;
 
 sealed partial class Build
 {
@@ -7,6 +9,16 @@ sealed partial class Build
 	private AbsolutePath Source => RootDirectory / "templates" / "src";
 
 	[Parameter("Template to build")] private readonly string Template;
+
+	private Target ListTemplates => _ => _
+		.Executes(() =>
+		{
+			var directories = Directory.GetDirectories(Source);
+			foreach (var d in directories)
+			{
+				Console.Write(Path.GetFileName(d));
+			}
+		});
 
 	private Target BuildTemplate => _ => _
 		.Requires(() => Template)
