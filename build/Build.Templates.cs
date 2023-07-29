@@ -22,8 +22,7 @@ sealed partial class Build
 		{
 			var templates = string.Join(" ", Templates);
 			File.WriteAllText(GithubOutput, $"templates={templates}\n");
-			Log.Information("templates={Templates}, GithubOutput={GithubOutput}", templates, GithubOutput);
-			Log.Information("GithubOutput content: {Output}", File.ReadAllText(GithubOutput));
+			Log.Information("templates={Templates}", templates);
 		});
 
 	private Target BuildTemplate => _ => _

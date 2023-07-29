@@ -16,17 +16,18 @@ jobs:
       - name: "find all templates"
         id: templates
         run: ./build.sh ListTemplates -GithubOutput "$GITHUB_OUTPUT"
-  # test:
-  #   name: "Hey there: ${{ matrix.templates }}"
-  #   runs-on: ubuntu-latest
-  #   continue-on-error: true
-  #   strategy:
-  #     matrix:
-  #       templates: [1, 2, 3]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Run test for '${{ matrix.templates }}'
-  #       id: smoke_test
-  #       run: echo 'Hello'
+  test-templates:
+    needs: [detect-changes]
+    name: "Hey there: ${{ matrix.templates }}"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Run test for '${{ matrix.templates }}'
+        id: smoke_test
+        run: echo 'Hello'
