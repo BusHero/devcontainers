@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       templates: ${{ steps.templates.outputs.templates }}
+      features: ${{ steps.templates.outputs.features }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -18,7 +19,7 @@ jobs:
         run: ./build.sh ListTemplates -GithubOutput "$GITHUB_OUTPUT"
   test-templates:
     needs: [detect-changes]
-    name: "Hey there: ${{ matrix.templates }}"
+    name: "Hey there: ${{ matrix.template }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -28,6 +29,21 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Run test for '${{ matrix.templates }}'
+      - name: Run test for '${{ matrix.template }}'
+        id: smoke_test
+        run: echo 'Hi man'
+  test-features:
+    needs: [detect-changes]
+    name: "Hey there: ${{ matrix.feature }}"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        template: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Run test for '${{ matrix.feature }}'
         id: smoke_test
         run: echo 'Hi man'

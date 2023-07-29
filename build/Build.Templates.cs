@@ -17,13 +17,27 @@ sealed partial class Build
 		.Select(Path.GetFileName)
 		.ToList();
 
+	private List<string?> Features => Directory
+		.GetDirectories(RootDirectory / "features" / "src")
+		.Select(Path.GetFileName)
+		.ToList();
+
 	private Target ListTemplates => _ => _
 	 	.Requires(() => GithubOutput)
 		.Executes(() =>
 		{
 			var templates = JsonSerializer.Serialize(Templates);
-			File.WriteAllText(GithubOutput, $"templates={templates}\n");
 			Log.Information("templates={Templates}", templates);
+			var features = JsonSerializer.Serialize(Features);
+			Log.Information("features={Features}", features);
+
+			File.WriteAllLines(
+				GithubOutput,
+				new[]
+				{
+					$"templates={templates}",
+					$"features={features}"
+				});
 		});
 
 	private Target BuildTemplate => _ => _
