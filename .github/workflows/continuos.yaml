@@ -1,9 +1,16 @@
-name: "CI - Test Templates"
+name: "Test CI "
 on:
   pull_request:
   workflow_dispatch:
 
 jobs:
+  detect-changes:
+    name: "Detect changes"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'find all templates'
+        id: templates
+        run: ls templates/src
   test:
     name: "Hey there: ${{ matrix.templates }}"
     runs-on: ubuntu-latest
