@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  detect-changes:
-    name: "Detect changes"
+  detect-features-and-templates:
+    name: "Detect features and templates"
     runs-on: ubuntu-latest
     outputs:
       templates: ${{ steps.templates.outputs.templates }}
@@ -18,13 +18,13 @@ jobs:
         id: templates
         run: ./build.sh ListTemplates -GithubOutput "$GITHUB_OUTPUT"
   test-templates:
-    needs: [detect-changes]
-    name: "Hey there: ${{ matrix.template }}"
+    needs: [detect-features-and-templates]
+    name: "Test template: ${{ matrix.template }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        template: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+        template: ${{ fromJSON(needs.detect-features-and-templates.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,13 +33,13 @@ jobs:
         id: smoke_test
         run: echo 'Hi man'
   test-features:
-    needs: [detect-changes]
-    name: "Hey there: ${{ matrix.feature }}"
+    needs: [detect-features-and-templates]
+    name: "Test feature: ${{ matrix.feature }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        feature: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        feature: ${{ fromJSON(needs.detect-features-and-templates.outputs.features) }}
     steps:
       - uses: actions/checkout@v3
         with:
