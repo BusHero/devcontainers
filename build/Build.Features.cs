@@ -8,14 +8,12 @@ sealed partial class Build
 
 	private Target TestFeature => _ => _
 		.Requires(() => Feature)
-		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
 			return Devcontainer($"features test --features {Feature} --project-folder {PathToFeatures} -i alpine");
 		});
 
 	private Target PublishFeatures => _ => _
-		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
 			return Devcontainer($"features publish {PathToFeatures / "src"} --namespace {GitHubNamespace}/features");

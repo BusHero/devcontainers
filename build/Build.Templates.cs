@@ -50,7 +50,6 @@ sealed partial class Build
 		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 
 	private Target PublishTemplate => _ => _
-		.DependsOn(InstallDevcontainer)
 		.Executes(() =>
 		{
 			return Devcontainer($"templates publish {Source} --namespace {GitHubNamespace}/templates");
