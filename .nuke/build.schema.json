@@ -14,6 +14,10 @@
           "type": "string",
           "description": "Feature to build"
         },
+        "GithubOutput": {
+          "type": "string",
+          "description": "Github Output"
+        },
         "Help": {
           "type": "boolean",
           "description": "Shows the help text for this build assembly"
@@ -69,7 +73,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "InstallDevcontainer",
+              "ListTemplates",
               "PublishFeatures",
               "PublishTemplate",
               "TestFeature",
@@ -84,7 +88,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "InstallDevcontainer",
+              "ListTemplates",
               "PublishFeatures",
               "PublishTemplate",
               "TestFeature",
