@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - name: "find all templates"
         id: templates
-        run: ./build.sh ListTemplates
+        run: ./build.sh ListTemplates -GithubOutput "$GITHUB_OUTPUT"
   # test:
   #   name: "Hey there: ${{ matrix.templates }}"
   #   runs-on: ubuntu-latest

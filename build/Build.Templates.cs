@@ -1,23 +1,28 @@
 using Nuke.Common;
 using Nuke.Common.IO;
-using System;
-using System.IO;
+using Serilog;
 
 sealed partial class Build
 {
 	private AbsolutePath Scripts => RootDirectory / "scripts";
 	private AbsolutePath Source => RootDirectory / "templates" / "src";
 
-	[Parameter("Template to build")] private readonly string Template;
+	[Parameter("Github Output")] private readonly string GithubOutput = null!;
+
+	[Parameter("Template to build")] private readonly string Template = null!;
+
+	private List<string?> Templates => Directory
+		.GetDirectories(Source)
+		.Select(Path.GetFileName)
+		.ToList();
 
 	private Target ListTemplates => _ => _
+	 	.Requires(() => GithubOutput)
 		.Executes(() =>
 		{
-			var directories = Directory.GetDirectories(Source);
-			foreach (var d in directories)
-			{
-				Console.Write(Path.GetFileName(d) + " ");
-			}
+			var templates = string.Join(" ", Templates);
+			File.WriteAllText(GithubOutput, $"templates={templates}\n");
+			Log.Information("templates={Templates}", templates);
 		});
 
 	private Target BuildTemplate => _ => _
