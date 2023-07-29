@@ -24,7 +24,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+        template: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -39,7 +39,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        template: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        feature: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
       - uses: actions/checkout@v3
         with:
