@@ -16,7 +16,7 @@ sealed partial class Build
 			var directories = Directory.GetDirectories(Source);
 			foreach (var d in directories)
 			{
-				Console.Write(Path.GetFileName(d));
+				Console.Write(Path.GetFileName(d) + " ");
 			}
 		});
 

@@ -7,8 +7,8 @@ jobs:
   detect-changes:
     name: "Detect changes"
     runs-on: ubuntu-latest
-    outputs:
-      templates: ${{ steps.templates.outputs }}
+    # outputs:
+    #   templates: ${{ steps.templates.outputs }}
     steps:
       - uses: actions/checkout@v3
         with:
