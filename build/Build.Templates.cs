@@ -20,7 +20,7 @@ sealed partial class Build
 	 	.Requires(() => GithubOutput)
 		.Executes(() =>
 		{
-			var templates = string.Join(" ", Templates);
+			var templates = '[' + string.Join(", ", Templates) + ']';
 			File.WriteAllText(GithubOutput, $"templates={templates}\n");
 			Log.Information("templates={Templates}", templates);
 		});

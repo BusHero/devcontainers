@@ -21,13 +21,14 @@ jobs:
     name: "Hey there: ${{ matrix.templates }}"
     runs-on: ubuntu-latest
     continue-on-error: true
-    strategy:
-      matrix:
-        templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+    # strategy:
+    #   matrix:
+    #     templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Run test for '${{ matrix.templates }}'
+      # - name: Run test for '${{ matrix.templates }}'
+      - name: foo
         id: smoke_test
-        run: echo 'Hello'
+        run: echo '${{ (needs.detect-changes.outputs.templates }}'
