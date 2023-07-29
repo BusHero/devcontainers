@@ -2,6 +2,7 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitHub;
+using Serilog;
 
 sealed partial class Build : NukeBuild
 {
@@ -13,4 +14,9 @@ sealed partial class Build : NukeBuild
 	[GitRepository] private readonly GitRepository Repository;
 
 	private string GitHubNamespace => $"{Repository.GetGitHubOwner()}/{Repository.GetGitHubName()}";
+
+	private void DevcontainerLog(OutputType type, string message)
+	{
+		Log.Debug("{Message}", message);
+	}
 }

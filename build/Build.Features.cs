@@ -1,6 +1,9 @@
 using System.Text.Json;
+using Microsoft.Build.Utilities;
 using Nuke.Common;
 using Nuke.Common.IO;
+using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Docker;
 using Serilog;
 
 sealed partial class Build
@@ -46,8 +49,9 @@ sealed partial class Build
 			var command = string.Join(" ", commands);
 			Log.Information("{command}", command);
 
-			Devcontainer(command);
+			Devcontainer(command, customLogger: DevcontainerLog);
 		});
+
 
 	private Target PublishFeatures => _ => _
 		.Executes(() =>
