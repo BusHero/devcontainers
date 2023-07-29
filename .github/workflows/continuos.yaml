@@ -54,4 +54,4 @@ jobs:
         run: npm install -g @devcontainers/cli
       - name: Run test for '${{ matrix.feature }}'
         id: smoke_test
-        run: echo 'Hi man'
+        run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'

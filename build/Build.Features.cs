@@ -1,5 +1,6 @@
 using Nuke.Common;
 using Nuke.Common.IO;
+using Serilog;
 
 sealed partial class Build
 {
@@ -10,7 +11,7 @@ sealed partial class Build
 		.Requires(() => Feature)
 		.Executes(() =>
 		{
-			return Devcontainer($"features test --features {Feature} --project-folder {PathToFeatures} -i alpine");
+			Devcontainer($"features test --features {Feature} --project-folder {PathToFeatures} -i alpine");
 		});
 
 	private Target PublishFeatures => _ => _
