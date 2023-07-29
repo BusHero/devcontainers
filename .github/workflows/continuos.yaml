@@ -5,6 +5,7 @@ on:
 
 jobs:
   test:
+    name: "Hey there: ${{ matrix.templates }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
