@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Serilog;
@@ -20,7 +21,7 @@ sealed partial class Build
 	 	.Requires(() => GithubOutput)
 		.Executes(() =>
 		{
-			var templates = '[' + string.Join(", ", Templates) + ']';
+			var templates = JsonSerializer.Serialize(Templates);
 			File.WriteAllText(GithubOutput, $"templates={templates}\n");
 			Log.Information("templates={Templates}", templates);
 		});
