@@ -8,20 +8,23 @@ jobs:
     name: "Detect changes"
     runs-on: ubuntu-latest
     steps:
-      - name: "find all templates"
-        id: templates
-        run: ls
-  test:
-    name: "Hey there: ${{ matrix.templates }}"
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      matrix:
-        templates: [1, 2, 3]
-    steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Run test for '${{ matrix.templates }}'
-        id: smoke_test
-        run: echo 'Hello'
+      - name: "find all templates"
+        id: templates
+        run: ls
+  # test:
+  #   name: "Hey there: ${{ matrix.templates }}"
+  #   runs-on: ubuntu-latest
+  #   continue-on-error: true
+  #   strategy:
+  #     matrix:
+  #       templates: [1, 2, 3]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Run test for '${{ matrix.templates }}'
+  #       id: smoke_test
+  #       run: echo 'Hello'
