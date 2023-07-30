@@ -1,0 +1,34 @@
+{
+	"scheme-default": {
+		"image": "alpine:latest",
+		"features": {
+			"texlive": {}
+		}
+	},
+	"scheme-basic": {
+		"image": "alpine:latest",
+		"features": {
+			"texlive": {
+				"scheme": "scheme-basic"
+			}
+		}
+	},
+	"scheme-infraonly": {
+		"image": "alpine:latest",
+		"features": {
+			"texlive": {
+				"scheme": "scheme-infraonly"
+			}
+		}
+	},
+	"packages": {
+		"image": "alpine:latest",
+		"features": {
+			"texlive": {
+				"packages": [
+					"listings"
+				]
+			}
+		}
+	}
+}
