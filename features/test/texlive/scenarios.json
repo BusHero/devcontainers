@@ -1,0 +1,12 @@
+{
+	"packages": {
+		"image": "alpine:latest",
+		"features": {
+			"texlive": {
+				"pacakges": [
+					"listings"
+				]
+			}
+		}
+	}
+}
