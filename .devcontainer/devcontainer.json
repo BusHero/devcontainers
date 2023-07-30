@@ -1,8 +1,8 @@
 {
 	"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
 	"features": {
-		"ghcr.io/bushero/devcontainers/features/nuke:latest": {},
-		"ghcr.io/bushero/devcontainers/features/devcontainers-cli:latest": {
+		"ghcr.io/bushero/devcontainer-template-test/features/nuke:latest": {},
+		"ghcr.io/bushero/devcontainer-template-test/features/devcontainers-cli:latest": {
 			"version": "0.49.0"
 		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
