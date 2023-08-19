@@ -5,21 +5,14 @@ tlversion=${1:-"$default_version"}
 installer_archive=install-tl-unx.tar.gz
 
 if [ "$tlversion" = "$default_version" ]; then
-    installer_url=$(wget --quiet --output-document=/dev/null \
-                         --server-response \
-                         http://mirror.ctan.org/systems/texlive/tlnet/ \
-                         2>&1 | \
-                        sed -ne 's/.*Location: \(.*\)$/\1/p')
+    installer_url='http://mirror.ctan.org/systems/texlive/tlnet/'
     repository=
-    echo "Installer url: $installer_url"
-    echo "Repository: $repository"
 else
     installer_url="\
 ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
     repository="\
 ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
 fi
-
 
 wget --no-verbose \
      "$installer_url/$installer_archive" \
