@@ -3,24 +3,42 @@
 		"image": "debian:latest",
 		"features": {
 			"nuke": {}
+		},
+		"containerEnv": {
+			"DOTNET_NOLOGO": "1",
+			"NUKE_TELEMETRY_OPTOUT": "1"
 		}
 	},
 	"alpine": {
 		"image": "alpine:latest",
 		"features": {
 			"nuke": {}
+		},
+		"containerEnv": {
+			"DOTNET_NOLOGO": "1",
+			"NUKE_TELEMETRY_OPTOUT": "1"
 		}
 	},
 	"dotnet-installed": {
 		"image": "mcr.microsoft.com/dotnet/sdk:7.0-alpine",
+		"user": "foo",
 		"features": {
 			"nuke": {}
+		},
+		"containerEnv": {
+			"DOTNET_NOLOGO": "1",
+			"NUKE_TELEMETRY_OPTOUT": "1"
 		}
 	},
-	"dotnet-bug1": {
+	"node-image-bug": {
 		"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
 		"features": {
-			"nuke": {}
+			"nuke": {},
+			"ghcr.io/devcontainers/features/dotnet:1": {}
+		},
+		"containerEnv": {
+			"DOTNET_NOLOGO": "1",
+			"NUKE_TELEMETRY_OPTOUT": "1"
 		}
 	}
 }
