@@ -1,3 +1,4 @@
 #!/bin/sh
 
-which nuke
+cd sample_project
+nuke --no-logo --verbosity Minimal

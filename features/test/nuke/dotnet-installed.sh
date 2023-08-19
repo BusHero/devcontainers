@@ -1,7 +1,4 @@
 #!/bin/sh
 
-if command -v nuke; then
-	exit 0
-else
-	exit 1
-fi
+cd sample_project
+nuke --no-logo --verbosity Minimal

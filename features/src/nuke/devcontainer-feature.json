@@ -1,13 +1,24 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
 	"id": "nuke",
-	"version": "1.3.0",
+	"version": "1.4.0",
 	"name": "nuke build",
+	"containerEnv": {
+		"PATH": "/root/.dotnet/tools:${PATH}",
+		"DOTNET_NOLOGO": "1"
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"nuke.support"
 			]
 		}
-	}
+	},
+	"installsAfter": [
+		"ghcr.io/devcontainers/features/dotnet",
+		"dotnet",
+		"ghcr.io/bushero/devcontainers/features/dotnet",
+		"bash",
+		"ghcr.io/bushero/devcontainers/features/bash"
+	]
 }
