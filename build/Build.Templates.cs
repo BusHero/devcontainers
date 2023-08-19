@@ -22,22 +22,28 @@ sealed partial class Build
 		.Select(Path.GetFileName)
 		.ToList();
 
-	private Target ListTemplates => _ => _
+	private Target ListTemplatesAndFeatures => _ => _
 	 	.Requires(() => GithubOutput)
-		.Executes(() =>
+		.Triggers(GetTemplates, GetFeatures);
+
+	private Target GetTemplates => _ => _
+		.Requires(() => GithubOutput)
+		.Executes(async () =>
 		{
 			var templates = JsonSerializer.Serialize(Templates);
 			Log.Information("templates={Templates}", templates);
-			var features = JsonSerializer.Serialize(Features);
-			Log.Information("features={Features}", features);
 
-			File.WriteAllLines(
-				GithubOutput,
-				new[]
-				{
-					$"templates={templates}",
-					$"features={features}"
-				});
+			await File.WriteAllTextAsync(GithubOutput, $"templates={templates}");
+		});
+
+	private Target GetFeatures => _ => _
+		.Requires(() => GithubOutput)
+		.Executes(async () =>
+		{
+			var features = JsonSerializer.Serialize(Features);
+			Log.Information("features={Templates}", features);
+
+			await File.WriteAllTextAsync(GithubOutput, $"templates={features}");
 		});
 
 	private Target BuildTemplate => _ => _

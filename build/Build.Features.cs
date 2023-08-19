@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -16,13 +15,15 @@ sealed partial class Build
 		.Requires(() => Feature)
 		.Executes(() =>
 		{
-			var commands = new List<string>(10);
-			commands.Add("features");
-			commands.Add("test");
-			commands.Add("--features");
-			commands.Add(Feature);
-			commands.Add("--project-folder");
-			commands.Add(PathToFeatures);
+			var commands = new List<string>(10)
+			{
+				"features",
+				"test",
+				"--features",
+				Feature,
+				"--project-folder",
+				PathToFeatures
+			};
 
 			var files = Directory
 				.GetFiles(PathToFeatures / "test" / Feature)
