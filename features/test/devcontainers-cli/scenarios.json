@@ -3,7 +3,7 @@
 		"image": "alpine:latest",
 		"features": {
 			"devcontainers-cli": {},
-			"ghcr.io/bushero/devcontainer-template-test/features/bash:latest": {}
+			"bash": {}
 		}
 	},
 	"test-dev-containers-version": {
@@ -12,7 +12,7 @@
 			"devcontainers-cli": {
 				"version": "0.39.0"
 			},
-			"ghcr.io/bushero/devcontainer-template-test/features/bash:latest": {}
+			"bash": {}
 		}
 	}
 }

@@ -16,5 +16,11 @@
 		"features": {
 			"nuke": {}
 		}
+	},
+	"dotnet-bug1": {
+		"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+		"features": {
+			"nuke": {}
+		}
 	}
 }
