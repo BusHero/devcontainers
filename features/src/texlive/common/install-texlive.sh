@@ -1,6 +1,6 @@
 #!/bin/sh
 
-default_version=2022
+default_version=2023
 tlversion=${1:-"$default_version"}
 installer_archive=install-tl-unx.tar.gz
 
@@ -11,6 +11,8 @@ if [ "$tlversion" = "$default_version" ]; then
                          2>&1 | \
                         sed -ne 's/.*Location: \(.*\)$/\1/p')
     repository=
+    echo "Installer url: $installer_url"
+    echo "Repository: $repository"
 else
     installer_url="\
 ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
@@ -18,8 +20,6 @@ ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
 ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
 fi
 
-echo "Installer url: $installer_url"
-echo "Repository: $repository"
 
 wget --no-verbose \
      "$installer_url/$installer_archive" \
