@@ -18,8 +18,8 @@ ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
 ftp://tug.org/historic/systems/texlive/$tlversion/tlnet-final"
 fi
 
-echo "Installer url: " + $installer_url
-echo "Repository: " + $repository
+echo "Installer url: $installer_url"
+echo "Repository: $repository"
 
 wget --no-verbose \
      "$installer_url/$installer_archive" \
