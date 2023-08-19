@@ -10,8 +10,4 @@
 			]
 		}
 	}
-	// ,
-	// "containerEnv": {
-	// 	"PATH": "${PATH}:~/.dotnet/tools"
-	// }
 }

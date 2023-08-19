@@ -30,16 +30,5 @@
 				]
 			}
 		}
-	},
-	"two_packages": {
-		"image": "alpine:latest",
-		"features": {
-			"texlive": {
-				"packages": [
-					"listings",
-					"subfiles"
-				]
-			}
-		}
 	}
 }
