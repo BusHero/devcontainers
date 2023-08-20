@@ -12,11 +12,16 @@ jobs:
       features: ${{ steps.templates.outputs.features }}
     steps:
       - uses: actions/checkout@v3
+        name: pull main
         with:
           fetch-depth: 0
-          sparse-checkout-cone-mode: false
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: main
+      - uses: actions/checkout@v3
+        name: pull branch
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: "git log"
         run: git log --oneline -n 10
       - name: "git branch"
