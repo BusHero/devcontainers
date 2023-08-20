@@ -13,7 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: "git log"
         run: git log --oneline -n 10
       - name: "git branch"
