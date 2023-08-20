@@ -18,6 +18,8 @@ jobs:
         run: git log --oneline -n 10
       - name: "git branch"
         run: git branch
+      - name: "git diff"
+        run: git diff --name-only
       - name: find changed templates & features
         id: templates
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
