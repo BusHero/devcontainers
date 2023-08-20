@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
           sparse-checkout-cone-mode: false
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          refs: main
+          ref: main
       - name: "git log"
         run: git log --oneline -n 10
       - name: "git branch"
