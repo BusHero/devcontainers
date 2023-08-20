@@ -5,45 +5,32 @@ using Serilog;
 
 sealed partial class Build
 {
-	private AbsolutePath Scripts => RootDirectory / "scripts";
-	private AbsolutePath Source => RootDirectory / "templates" / "src";
-
-	[Parameter("Github Output")] private readonly string GithubOutput = null!;
+	private AbsolutePath TemplatesRoot => RootDirectory / "templates";
 
 	[Parameter("Template to build")] private readonly string Template = null!;
-
-	private List<string?> Templates => Directory
-		.GetDirectories(Source)
-		.Select(Path.GetFileName)
-		.ToList();
-
-	private List<string?> Features => Directory
-		.GetDirectories(RootDirectory / "features" / "src")
-		.Select(Path.GetFileName)
-		.ToList();
-
-	private Target ListTemplatesAndFeatures => _ => _
-	 	.Requires(() => GithubOutput)
-		.Triggers(GetTemplates, GetFeatures);
 
 	private Target GetTemplates => _ => _
 		.Requires(() => GithubOutput)
 		.Executes(async () =>
 		{
-			var templates = JsonSerializer.Serialize(Templates);
-			Log.Information("templates={Templates}", templates);
+			var templates = Directory
+				.GetDirectories(TemplatesRoot / "src")
+				.Select(x => RootDirectory.GetRelativePathTo(x))
+				.Where(feature => Changes.Any(change => change.StartsWith(feature)))
+				.Select(x => x.ToString())
+				.Select(Path.GetFileName)
+				.ToList();
 
-			await File.WriteAllTextAsync(GithubOutput, $"templates={templates}");
-		});
+			if (templates.Count is 0)
+			{
+				Log.Information("No updated templates");
+				return;
+			}
 
-	private Target GetFeatures => _ => _
-		.Requires(() => GithubOutput)
-		.Executes(async () =>
-		{
-			var features = JsonSerializer.Serialize(Features);
-			Log.Information("features={Templates}", features);
 
-			await File.WriteAllTextAsync(GithubOutput, $"templates={features}");
+			var templatesStr = JsonSerializer.Serialize(templates);
+			Log.Information("Updated templates: {Templates}", templatesStr);
+			await OutputToGithub("templates", templatesStr);
 		});
 
 	private Target BuildTemplate => _ => _
@@ -58,6 +45,6 @@ sealed partial class Build
 	private Target PublishTemplate => _ => _
 		.Executes(() =>
 		{
-			return Devcontainer($"templates publish {Source} --namespace {GitHubNamespace}/templates");
+			return Devcontainer($"templates publish {TemplatesRoot} --namespace {GitHubNamespace}/templates");
 		});
 }

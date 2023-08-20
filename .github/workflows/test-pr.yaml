@@ -18,42 +18,42 @@ jobs:
         id: templates
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
 
-  # test-templates:
-  #   needs: [detect-features-and-templates]
-  #   name: "Test template: ${{ matrix.template }}"
-  #   runs-on: ubuntu-latest
-  #   continue-on-error: true
-  #   strategy:
-  #     matrix:
-  #       template: ${{ fromJSON(needs.detect-features-and-templates.outputs.templates) }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Install Node
-  #       uses: actions/setup-node@v3
-  #     - name: Install dev containers
-  #       run: npm install -g @devcontainers/cli
-  #     - name: Run test for '${{ matrix.template }}'
-  #       id: smoke_test
-  #       run: echo 'Hi man'
+  test-templates:
+    needs: [detect-features-and-templates]
+    name: "Test template: ${{ matrix.template }}"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        template: ${{ fromJSON(needs.detect-features-and-templates.outputs.templates) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Install dev containers
+        run: npm install -g @devcontainers/cli
+      - name: Run test for '${{ matrix.template }}'
+        id: smoke_test
+        run: echo 'Hi man'
 
-  # test-features:
-  #   needs: [detect-features-and-templates]
-  #   name: "Test feature: ${{ matrix.feature }}"
-  #   runs-on: ubuntu-latest
-  #   continue-on-error: true
-  #   strategy:
-  #     matrix:
-  #       feature: ${{ fromJSON(needs.detect-features-and-templates.outputs.features) }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Install Node
-  #       uses: actions/setup-node@v3
-  #     - name: Install dev containers
-  #       run: npm install -g @devcontainers/cli
-  #     - name: Run test for '${{ matrix.feature }}'
-  #       id: smoke_test
-  #       run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
+  test-features:
+    needs: [detect-features-and-templates]
+    name: "Test feature: ${{ matrix.feature }}"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        feature: ${{ fromJSON(needs.detect-features-and-templates.outputs.features) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Install dev containers
+        run: npm install -g @devcontainers/cli
+      - name: Run test for '${{ matrix.feature }}'
+        id: smoke_test
+        run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
