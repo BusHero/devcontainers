@@ -4,6 +4,40 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes1:
+    name: fetch-depth 1
+    runs-on: ubuntu-latest
+    outputs:
+      templates: ${{ steps.templates.outputs.templates }}
+      features: ${{ steps.templates.outputs.features }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: "git log"
+        run: git log --oneline -n 10
+      - name: "git branch"
+        run: git branch
+      - name: "git diff"
+        run: git status
+
+  changes2:
+    name: fetch-depth 2
+    runs-on: ubuntu-latest
+    outputs:
+      templates: ${{ steps.templates.outputs.templates }}
+      features: ${{ steps.templates.outputs.features }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: "git log"
+        run: git log --oneline -n 10
+      - name: "git branch"
+        run: git branch
+      - name: "git diff"
+        run: git status
+
   changes:
     name: Detect changed features & templates
     runs-on: ubuntu-latest
