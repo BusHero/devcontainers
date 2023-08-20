@@ -72,6 +72,7 @@
           "items": {
             "type": "string",
             "enum": [
+              "BuildDocumentation",
               "BuildTemplate",
               "GetFeatures",
               "GetTemplates",
@@ -92,6 +93,7 @@
           "items": {
             "type": "string",
             "enum": [
+              "BuildDocumentation",
               "BuildTemplate",
               "GetFeatures",
               "GetTemplates",
