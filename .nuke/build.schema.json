@@ -73,7 +73,9 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "ListTemplates",
+              "GetFeatures",
+              "GetTemplates",
+              "ListTemplatesAndFeatures",
               "PublishFeatures",
               "PublishTemplate",
               "TestFeature",
@@ -91,7 +93,9 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "ListTemplates",
+              "GetFeatures",
+              "GetTemplates",
+              "ListTemplatesAndFeatures",
               "PublishFeatures",
               "PublishTemplate",
               "TestFeature",

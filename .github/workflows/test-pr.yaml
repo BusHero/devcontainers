@@ -4,27 +4,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  detect-features-and-templates:
-    name: "Detect features and templates"
+  changes:
+    name: Detect changed features & templates
     runs-on: ubuntu-latest
     outputs:
       templates: ${{ steps.templates.outputs.templates }}
       features: ${{ steps.templates.outputs.features }}
     steps:
       - uses: actions/checkout@v3
+        name: pull branch
         with:
           fetch-depth: 0
-      - name: "find all templates"
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: find changed templates & features
         id: templates
-        run: ./build.sh ListTemplates -GithubOutput "$GITHUB_OUTPUT"
+        run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
+
   test-templates:
-    needs: [detect-features-and-templates]
+    if: ${{ needs.changes.outputs.templates }}
+    needs: [changes]
     name: "Test template: ${{ matrix.template }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        template: ${{ fromJSON(needs.detect-features-and-templates.outputs.templates) }}
+        template: ${{ fromJSON(needs.changes.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -36,14 +40,16 @@ jobs:
       - name: Run test for '${{ matrix.template }}'
         id: smoke_test
         run: echo 'Hi man'
+
   test-features:
-    needs: [detect-features-and-templates]
+    if: ${{ needs.changes.outputs.features }}
+    needs: [changes]
     name: "Test feature: ${{ matrix.feature }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        feature: ${{ fromJSON(needs.detect-features-and-templates.outputs.features) }}
+        feature: ${{ fromJSON(needs.changes.outputs.features) }}
     steps:
       - uses: actions/checkout@v3
         with:
