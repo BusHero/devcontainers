@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  detect-features-and-templates:
+  changes:
     name: Detect changed features & templates
     runs-on: ubuntu-latest
     outputs:
@@ -19,13 +19,14 @@ jobs:
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
 
   test-templates:
-    needs: [detect-features-and-templates]
+    if: ${{ needs.changes.outputs.templates }}
+    needs: [changes]
     name: "Test template: ${{ matrix.template }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        template: ${{ fromJSON(needs.detect-features-and-templates.outputs.templates) }}
+        template: ${{ fromJSON(needs.changes.outputs.templates) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -39,13 +40,14 @@ jobs:
         run: echo 'Hi man'
 
   test-features:
-    needs: [detect-features-and-templates]
+    if: ${{ needs.changes.outputs.features }}
+    needs: [changes]
     name: "Test feature: ${{ matrix.feature }}"
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        feature: ${{ fromJSON(needs.detect-features-and-templates.outputs.features) }}
+        feature: ${{ fromJSON(needs.changes.outputs.features) }}
     steps:
       - uses: actions/checkout@v3
         with:
