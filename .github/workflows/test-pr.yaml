@@ -16,12 +16,6 @@ jobs:
         with:
           fetch-depth: 0
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - name: "git log"
-        run: git log --oneline -n 10
-      - name: "git branch"
-        run: git branch -a
-      - name: "git diff"
-        run: git status
       - name: find changed templates & features
         id: templates
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"

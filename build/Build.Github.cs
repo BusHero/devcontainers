@@ -20,6 +20,7 @@ partial class Build : NukeBuild
 	{
 		var changedFiles = Git(Arguments(
 			"diff",
+			"remotes/origin/main",
 			"--name-only"));
 		var untrackedFiles = Git(Arguments(
 			"ls-files",
