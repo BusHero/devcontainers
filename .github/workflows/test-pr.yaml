@@ -14,8 +14,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: 'git log'
+      - name: "git log"
         run: git log --oneline -n 10
+      - name: "git branch"
+        run: git branch
       - name: find changed templates & features
         id: templates
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
