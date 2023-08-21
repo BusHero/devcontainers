@@ -1,5 +1,4 @@
 #!/bin/sh
-
 apk update
 apk upgrade
 apk add \
@@ -62,8 +61,9 @@ echo "tlpdbopt_w32_multi_user 1" >> /root/texlive.profile
 /root/install-texlive.sh $texlive_version
 tlmgr install listings
 if [ $PACKAGES ]; then
-  sed -e 's/,/ /g' $PACKAGES | xargs tlmgr install
+  echo "$PACKAGES" | sed -e 's/,/ /g' | xargs tlmgr install
 fi
+
 rm -f /root/texlive.profile \
   /root/install-texlive.sh
 
