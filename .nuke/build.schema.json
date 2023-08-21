@@ -72,8 +72,8 @@
           "items": {
             "type": "string",
             "enum": [
-              "BuildDocumentation",
               "BuildTemplate",
+              "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",
               "ListTemplatesAndFeatures",
@@ -93,8 +93,8 @@
           "items": {
             "type": "string",
             "enum": [
-              "BuildDocumentation",
               "BuildTemplate",
+              "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",
               "ListTemplatesAndFeatures",
