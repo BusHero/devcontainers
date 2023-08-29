@@ -22,8 +22,20 @@ public sealed partial class Build : NukeBuild
             var versionJsonElement = document.Root["version"];
 
             var version = new Version(versionJsonElement!.GetValue<string>());
+            Log.Information("old version: {version}", version);
+
+            var latestGitTag = await GetLatestTag();
             var latestGitMessage = await GetLatestCommitMessage();
-            if (latestGitMessage.StartsWith("feat:"))
+            var commits = latestGitTag switch
+            {
+                null => new List<string>(),
+                _ => await GetCommitsTillTag(latestGitTag)
+            };
+            Log.Information("latest git tag: {latestGitTag}", latestGitTag);
+            Log.Information("commits {commits}", commits);
+            Log.Information("latest git commit {commit}", latestGitMessage);
+
+            if (commits.Any(x => x.StartsWith("feat:")))
             {
                 version = version.IncrementMajor();
             }
@@ -33,6 +45,7 @@ public sealed partial class Build : NukeBuild
             }
 
             document["version"] = version.ToString();
+            Log.Information("new version: {version}", version);
 
             var outputJson = document.ToJsonString();
             await File.WriteAllTextAsync(PathToFeatureDefinition, outputJson);
@@ -44,6 +57,38 @@ public sealed partial class Build : NukeBuild
             var message = await GetLatestCommitMessage();
             Log.Information("{tags}", message);
         });
+
+    private async Task<string?> GetLatestTag()
+    {
+        var tags = new List<string>();
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("describe")
+                .Add("--abbrev=0")
+                .Add("--tags"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
+            .ExecuteAsync();
+
+        return tags.FirstOrDefault();
+    }
+
+    private async Task<List<string>> GetCommitsTillTag(string tag)
+    {
+        Log.Information("{msg}", "Here is nice");
+        var commits = new List<string>();
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-list")
+                .Add($"{tag}..HEAD")
+                .Add("--pretty=%s")
+                .Add("--no-commit-header"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(commits.Add))
+            .ExecuteAsync();
+
+        return commits;
+    }
 
     private async Task<string> GetLatestCommitMessage()
     {

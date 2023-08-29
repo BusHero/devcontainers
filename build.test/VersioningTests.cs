@@ -5,25 +5,29 @@ namespace build.test;
 
 public class VersioningTests : IAsyncLifetime
 {
+    private const bool DELETE_FILES = true;
+    private const bool ROLLBACK_COMMITS = true;
+    private const bool DELETE_TAG = true;
+
     private string? DirectoryToCleanUp;
 
     private string? TagToRemove;
 
-    private readonly bool DeleteFiles = true;
+    private int commitsCount = 0;
 
     [Theory]
     [AutoData]
-    public async Task ChoreUpdatesMinorVersion(
+    public async Task TwoCommits_FeatAndChore_UpdatesMajor(
         string feature,
         int major,
         int minor,
         int build,
+        string gitTag,
         string message)
     {
         feature = feature.Replace("-", "");
+        gitTag = gitTag.Replace("-", "");
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
-        var tag = $"feature_{feature}_{major}.{minor}.{build}";
-        var commitMessage = $"chore: {message}";
         var featureRoot = Nuke.Common.NukeBuild.RootDirectory
             / "features"
             / "src"
@@ -31,42 +35,12 @@ public class VersioningTests : IAsyncLifetime
         var featureFile = featureRoot
             / "devcontainer-feature.json";
 
-        await CreateFeatureFile(featureFile, major, minor, build);
-        await AddGitTag(tag);
-        await AddFilesToGit(featureRoot, commitMessage);
-
-        await RunBuild(feature);
-
-        var version = await GetVersion(featureFile);
-
-        version
-            .Should()
-            .Be($"{major}.{minor + 1}.0");
-    }
-
-    [Theory]
-    [AutoData]
-    public async Task FeatUpdatesMajorVersion(
-        string feature,
-        int major,
-        int minor,
-        int build,
-        string message)
-    {
-        feature = feature.Replace("-", "");
-        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
-        var tag = $"feature_{feature}_{major}.{minor}.{build}";
-        var commitMessage = $"feat: {message}";
-        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
-            / "features"
-            / "src"
-            / feature;
-        var featureFile = featureRoot
-            / "devcontainer-feature.json";
+        await AddGitTag(gitTag);
 
         await CreateFeatureFile(featureFile, major, minor, build);
-        await AddGitTag(tag);
-        await AddFilesToGit(featureRoot, commitMessage);
+        await Commit(featureRoot, $"feat: {message}");
+        File.WriteAllText(featureRoot / "foo", string.Empty);
+        await Commit(featureRoot, $"chore: {message}");
 
         await RunBuild(feature);
 
@@ -75,6 +49,42 @@ public class VersioningTests : IAsyncLifetime
         version
             .Should()
             .Be($"{major + 1}.0.0");
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task TwoCommits_ChoreAndChore_UpdatesChore(
+        string feature,
+        int major,
+        int minor,
+        int build,
+        string gitTag,
+        string message)
+    {
+        feature = feature.Replace("-", "");
+        gitTag = gitTag.Replace("-", "");
+        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
+        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
+            / "features"
+            / "src"
+            / feature;
+        var featureFile = featureRoot
+            / "devcontainer-feature.json";
+
+        await AddGitTag(gitTag);
+
+        await CreateFeatureFile(featureFile, major, minor, build);
+        await Commit(featureRoot, $"chore: {message}");
+        File.WriteAllText(featureRoot / "foo", string.Empty);
+        await Commit(featureRoot, $"chore: {message}");
+
+        await RunBuild(feature);
+
+        var version = await GetVersion(featureFile);
+
+        version
+            .Should()
+            .Be($"{major}.{minor + 1}.0");
     }
 
     private async Task CreateFeatureFile(
@@ -118,7 +128,7 @@ public class VersioningTests : IAsyncLifetime
             .ExecuteAsync();
     }
 
-    private async Task AddFilesToGit(
+    private async Task Commit(
         string path,
         string message)
     {
@@ -137,6 +147,8 @@ public class VersioningTests : IAsyncLifetime
                 .Add(message)
                 .Add("--quiet"))
             .ExecuteAsync();
+
+        commitsCount++;
     }
 
     private async Task AddGitTag(string tag)
@@ -144,7 +156,8 @@ public class VersioningTests : IAsyncLifetime
         await Cli.Wrap("git")
             .WithArguments(args => args
                 .Add("tag")
-                .Add(tag))
+                .Add(tag)
+                .Add("HEAD"))
             .ExecuteAsync();
         TagToRemove = tag;
     }
@@ -164,20 +177,23 @@ public class VersioningTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        if (TagToRemove is not null)
+        if (DELETE_TAG && TagToRemove is not null)
             await RemoveTag(TagToRemove);
 
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("reset")
-                .Add("--no-refresh")
-                .Add("--soft")
-                .Add("HEAD~")
-                .Add("--quiet"))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .ExecuteAsync();
+        if (ROLLBACK_COMMITS && commitsCount > 0)
+        {
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("reset")
+                    .Add("--no-refresh")
+                    .Add("--soft")
+                    .Add($"HEAD~{commitsCount}")
+                    .Add("--quiet"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+                .ExecuteAsync();
+        }
 
-        if (DeleteFiles)
+        if (DELETE_FILES)
             RemoveTempDirectory(DirectoryToCleanUp);
     }
 
