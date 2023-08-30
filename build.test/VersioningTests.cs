@@ -1,19 +1,18 @@
-using System.Text.Json;
-using CliWrap;
-
 namespace build.test;
 
-public class VersioningTests : IAsyncLifetime
+public sealed class VersioningTests : IAsyncLifetime
 {
-    private const bool DELETE_FILES = true;
-    private const bool ROLLBACK_COMMITS = true;
-    private const bool DELETE_TAG = true;
+    private readonly CustomFixture fixture;
 
-    private string? DirectoryToCleanUp;
-
-    private string? TagToRemove;
-
-    private int commitsCount = 0;
+    public VersioningTests()
+    {
+        this.fixture = new CustomFixture
+        {
+            KeepCommits = false,
+            KeepFiles = false,
+            KeepTags = false
+        };
+    }
 
     [Theory]
     [AutoData]
@@ -22,11 +21,10 @@ public class VersioningTests : IAsyncLifetime
         int major,
         int minor,
         int build,
-        string gitTag,
         string message)
     {
         feature = feature.Replace("-", "");
-        gitTag = gitTag.Replace("-", "");
+        var gitTag = fixture.GetRightTag(feature);
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
         var featureRoot = Nuke.Common.NukeBuild.RootDirectory
             / "features"
@@ -35,16 +33,16 @@ public class VersioningTests : IAsyncLifetime
         var featureFile = featureRoot
             / "devcontainer-feature.json";
 
-        await AddGitTag(gitTag);
+        await this.fixture.AddGitTag(gitTag);
 
-        await CreateFeatureFile(featureFile, major, minor, build);
-        await Commit(featureRoot, $"feat: {message}");
+        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.Commit(featureRoot, $"feat: {message}");
         File.WriteAllText(featureRoot / "foo", string.Empty);
-        await Commit(featureRoot, $"chore: {message}");
+        await fixture.Commit(featureRoot, $"chore: {message}");
 
-        await RunBuild(feature);
+        await fixture.RunBuild(feature);
 
-        var version = await GetVersion(featureFile);
+        var version = await fixture.GetVersion(featureFile);
 
         version
             .Should()
@@ -58,11 +56,10 @@ public class VersioningTests : IAsyncLifetime
         int major,
         int minor,
         int build,
-        string gitTag,
         string message)
     {
         feature = feature.Replace("-", "");
-        gitTag = gitTag.Replace("-", "");
+        var gitTag = fixture.GetRightTag(feature);
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
         var featureRoot = Nuke.Common.NukeBuild.RootDirectory
             / "features"
@@ -71,135 +68,60 @@ public class VersioningTests : IAsyncLifetime
         var featureFile = featureRoot
             / "devcontainer-feature.json";
 
-        await AddGitTag(gitTag);
+        await fixture.AddGitTag(gitTag);
 
-        await CreateFeatureFile(featureFile, major, minor, build);
-        await Commit(featureRoot, $"chore: {message}");
+        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.Commit(featureRoot, $"chore: {message}");
         File.WriteAllText(featureRoot / "foo", string.Empty);
-        await Commit(featureRoot, $"chore: {message}");
+        await fixture.Commit(featureRoot, $"chore: {message}");
 
-        await RunBuild(feature);
+        await fixture.RunBuild(feature);
 
-        var version = await GetVersion(featureFile);
+        var version = await fixture.GetVersion(featureFile);
 
         version
             .Should()
             .Be($"{major}.{minor + 1}.0");
     }
 
-    private async Task CreateFeatureFile(
-        string pathToFeature,
+    [Theory]
+    [AutoData]
+    public async Task UseTheRightTag(
+        string feature,
         int major,
         int minor,
-        int build)
-    {
-        var directoryName = Path.GetDirectoryName(pathToFeature);
-
-        Directory.CreateDirectory(directoryName!);
-
-        await File.WriteAllTextAsync(
-            pathToFeature,
-            $$"""{ "version": "{{major}}.{{minor}}.{{build}}" }""");
-
-        DirectoryToCleanUp = directoryName;
-    }
-
-    private async Task<string?> GetVersion(string path)
-    {
-        using var fileStream = File.OpenRead(path);
-        var document = await JsonDocument.ParseAsync(fileStream);
-
-        return document.RootElement.GetProperty("version").GetString();
-    }
-
-    private async Task RunBuild(string feature)
-    {
-        await Cli.Wrap("dotnet")
-            .WithArguments(args => args
-                .Add("run")
-                .Add("--project")
-                .Add("/workspaces/devcontainers/build")
-                .Add("Version")
-                .Add("--feature")
-                .Add(feature)
-                .Add("--no-logo")
-                .Add("--verbosity")
-                .Add("Quiet"))
-            .ExecuteAsync();
-    }
-
-    private async Task Commit(
-        string path,
+        int build,
+        string wrongTag,
         string message)
     {
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("add")
-                .Add(path))
-            .ExecuteAsync();
+        feature = feature.Replace("-", "");
+        var rightTag = fixture.GetRightTag(feature);
+        wrongTag = wrongTag.Replace("-", "");
+        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
+        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
+            / "features"
+            / "src"
+            / feature;
+        var featureFile = featureRoot
+            / "devcontainer-feature.json";
 
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("commit")
-                .Add("--include")
-                .Add(path)
-                .Add("--message")
-                .Add(message)
-                .Add("--quiet"))
-            .ExecuteAsync();
+        await fixture.AddGitTag(rightTag);
+        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.Commit(featureRoot, $"feat: {message}");
+        await fixture.AddGitTag(wrongTag);
+        File.WriteAllText(featureRoot / "foo", string.Empty);
+        await fixture.Commit(featureRoot, $"chore: {message}");
 
-        commitsCount++;
-    }
+        await fixture.RunBuild(feature);
 
-    private async Task AddGitTag(string tag)
-    {
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("tag")
-                .Add(tag)
-                .Add("HEAD"))
-            .ExecuteAsync();
-        TagToRemove = tag;
-    }
+        var version = await fixture.GetVersion(featureFile);
 
-    private async Task RemoveTag(string tag)
-    {
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("tag")
-                .Add("--delete")
-                .Add(tag))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .ExecuteAsync();
+        version
+            .Should()
+            .Be($"{major + 1}.0.0");
     }
 
     public async Task InitializeAsync() => await Task.CompletedTask;
 
-    public async Task DisposeAsync()
-    {
-        if (DELETE_TAG && TagToRemove is not null)
-            await RemoveTag(TagToRemove);
-
-        if (ROLLBACK_COMMITS && commitsCount > 0)
-        {
-            await Cli.Wrap("git")
-                .WithArguments(args => args
-                    .Add("reset")
-                    .Add("--no-refresh")
-                    .Add("--soft")
-                    .Add($"HEAD~{commitsCount}")
-                    .Add("--quiet"))
-                .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-                .ExecuteAsync();
-        }
-
-        if (DELETE_FILES)
-            RemoveTempDirectory(DirectoryToCleanUp);
-    }
-
-    private void RemoveTempDirectory(string? directory)
-    {
-        if (Directory.Exists(directory))
-            Directory.Delete(directory, true);
-    }
+    public async Task DisposeAsync() => await fixture.DisposeAsync();
 }

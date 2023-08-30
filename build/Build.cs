@@ -24,17 +24,15 @@ public sealed partial class Build : NukeBuild
             var version = new Version(versionJsonElement!.GetValue<string>());
             Log.Information("old version: {version}", version);
 
-            var latestGitTag = await GetLatestTag();
-            var latestGitMessage = await GetLatestCommitMessage();
+            var latestGitTag = await GetLatestTag(Feature);
+            Log.Information("{tag}", latestGitTag);
+
             var commits = latestGitTag switch
             {
                 null => new List<string>(),
                 _ => await GetCommitsTillTag(latestGitTag)
             };
-            Log.Information("latest git tag: {latestGitTag}", latestGitTag);
-            Log.Information("commits {commits}", commits);
-            Log.Information("latest git commit {commit}", latestGitMessage);
-
+            Log.Information("commits: {commits}", commits);
             if (commits.Any(x => x.StartsWith("feat:")))
             {
                 version = version.IncrementMajor();
@@ -58,7 +56,7 @@ public sealed partial class Build : NukeBuild
             Log.Information("{tags}", message);
         });
 
-    private async Task<string?> GetLatestTag()
+    private async Task<string?> GetLatestTag(string feature)
     {
         var tags = new List<string>();
 
@@ -66,7 +64,9 @@ public sealed partial class Build : NukeBuild
             .WithArguments(args => args
                 .Add("describe")
                 .Add("--abbrev=0")
-                .Add("--tags"))
+                .Add("--tags")
+                .Add("--match")
+                .Add($"feature_{feature}*"))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
             .ExecuteAsync();
 
