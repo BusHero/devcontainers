@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.4" />
     <PackageReference Include="Nuke.Common" Version="6.3.0" />
   </ItemGroup>
 

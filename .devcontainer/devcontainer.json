@@ -14,7 +14,8 @@
 				"dbaeumer.vscode-eslint",
 				"ms-dotnettools.csharp",
 				"redhat.vscode-yaml",
-				"GitHub.vscode-pull-request-github"
+				"GitHub.vscode-pull-request-github",
+				"redhat.vscode-xml"
 			]
 		}
 	},

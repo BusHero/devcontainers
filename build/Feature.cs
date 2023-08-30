@@ -6,7 +6,7 @@ using System.Globalization;
 /// Development Container Features Metadata (devcontainer-feature.json). See
 /// https://containers.dev/implementors/features/ for more information.
 /// </summary>
-public partial class Feature
+public partial record Feature
 {
     /// <summary>
     /// Passes docker capabilities to include when creating the dev container.
