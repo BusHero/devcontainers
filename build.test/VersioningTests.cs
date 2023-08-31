@@ -1,3 +1,5 @@
+using Nuke.Common;
+
 namespace build.test;
 
 public sealed class VersioningTests : IAsyncLifetime
@@ -23,26 +25,22 @@ public sealed class VersioningTests : IAsyncLifetime
         int build,
         string message)
     {
-        feature = feature.Replace("-", "");
-        var gitTag = fixture.GetRightTag(feature);
+        feature = feature.Replace("-", string.Empty);
+        var gitTag = fixture.GetTagForFeature(feature);
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
-        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
-            / "features"
-            / "src"
-            / feature;
-        var featureFile = featureRoot
-            / "devcontainer-feature.json";
+        var featureRoot = fixture.GetFeatureRoot(feature);
+        var featureFile = fixture.GetFeatureConfig(feature);
 
         await this.fixture.AddGitTag(gitTag);
 
-        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.CreateFeatureConfig(feature, major, minor, build);
         await fixture.Commit(featureRoot, $"feat: {message}");
-        File.WriteAllText(featureRoot / "foo", string.Empty);
+        fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
         await fixture.RunBuild(feature);
 
-        var version = await fixture.GetVersion(featureFile);
+        var version = await fixture.GetVersion(feature);
 
         version
             .Should()
@@ -58,26 +56,21 @@ public sealed class VersioningTests : IAsyncLifetime
         int build,
         string message)
     {
-        feature = feature.Replace("-", "");
-        var gitTag = fixture.GetRightTag(feature);
+        feature = feature.Replace("-", string.Empty);
+        var gitTag = fixture.GetTagForFeature(feature);
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
-        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
-            / "features"
-            / "src"
-            / feature;
-        var featureFile = featureRoot
-            / "devcontainer-feature.json";
+        var featureRoot = fixture.GetFeatureRoot(feature);
+        var featureFile = fixture.GetFeatureConfig(feature);
 
         await fixture.AddGitTag(gitTag);
-
-        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.CreateFeatureConfig(feature, major, minor, build);
         await fixture.Commit(featureRoot, $"chore: {message}");
-        File.WriteAllText(featureRoot / "foo", string.Empty);
+        fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
         await fixture.RunBuild(feature);
 
-        var version = await fixture.GetVersion(featureFile);
+        var version = await fixture.GetVersion(feature);
 
         version
             .Should()
@@ -94,27 +87,22 @@ public sealed class VersioningTests : IAsyncLifetime
         string wrongTag,
         string message)
     {
-        feature = feature.Replace("-", "");
-        var rightTag = fixture.GetRightTag(feature);
+        feature = feature.Replace("-", string.Empty);
+        var featureRoot = fixture.GetFeatureRoot(feature);
+        var rightTag = fixture.GetTagForFeature(feature);
         wrongTag = wrongTag.Replace("-", "");
         (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
-        var featureRoot = Nuke.Common.NukeBuild.RootDirectory
-            / "features"
-            / "src"
-            / feature;
-        var featureFile = featureRoot
-            / "devcontainer-feature.json";
 
         await fixture.AddGitTag(rightTag);
-        await fixture.CreateFeatureFile(featureFile, major, minor, build);
+        await fixture.CreateFeatureConfig(feature, major, minor, build);
         await fixture.Commit(featureRoot, $"feat: {message}");
         await fixture.AddGitTag(wrongTag);
-        File.WriteAllText(featureRoot / "foo", string.Empty);
+        fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
         await fixture.RunBuild(feature);
 
-        var version = await fixture.GetVersion(featureFile);
+        var version = await fixture.GetVersion(feature);
 
         version
             .Should()
