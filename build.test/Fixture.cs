@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CliWrap;
+using CliWrap.Builders;
 using Nuke.Common;
 using Nuke.Common.IO;
 
@@ -62,6 +63,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--progress")
                 .Add(files))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
     }
 
@@ -124,9 +126,16 @@ internal sealed class CustomFixture : IAsyncDisposable
     {
         this.CreateTempDirectory(GetFeatureRoot(featureName));
 
-        await File.WriteAllTextAsync(
-            GetFeatureConfig(featureName),
-            $$"""{ "version": "{{major}}.{{minor}}.{{build}}" }""");
+        var featureConfig = GetFeatureConfig(featureName);
+        var json = $$"""
+            {
+                "version": "{{major}}.{{minor}}.{{build}}",
+                "id": "{{featureName}}",
+                "name": "{{featureName}}"
+            }
+            """;
+
+        await File.WriteAllTextAsync(featureConfig, json);
     }
 
     public AbsolutePath GetFeatureRoot(string featureName)
@@ -148,19 +157,24 @@ internal sealed class CustomFixture : IAsyncDisposable
         return document.RootElement.GetProperty("version").GetString();
     }
 
-    public async Task RunBuild(string feature)
+    public async Task RunBuild(Action<ArgumentsBuilder> configure)
     {
         await Cli.Wrap("dotnet")
-            .WithArguments(args => args
+            .WithArguments(args => configure(args
                 .Add("run")
                 .Add("--project")
                 .Add("/workspaces/devcontainers/build")
-                .Add("Version")
-                .Add("--feature")
-                .Add(feature)
-                .Add("--no-logo"))
+                .Add("--no-logo")))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
+    }
+
+    public async Task RunVersionTarget(string feature)
+    {
+        await RunBuild(args => args
+            .Add("Version")
+            .Add("--feature")
+            .Add(feature));
     }
 
     public async Task Commit(
@@ -213,6 +227,57 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(tags))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
+    }
+
+    public async Task<string> GetLatestCommitMessage()
+    {
+        var commitMessage = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-list")
+                .Add("HEAD")
+                .Add("--pretty=%s")
+                .Add("--no-commit-header")
+                .Add("-n1"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitMessage = x))
+            .ExecuteAsync();
+
+        return commitMessage;
+    }
+    public async Task<string> GetLatestTag(string feature)
+    {
+        var tag = string.Empty;
+
+        var result = await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("describe")
+                .Add("--abbrev=0")
+                .Add("--tags")
+                .Add("--match")
+                .Add($"feature_{feature}*"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
+            .ExecuteAsync();
+
+        return tag;
+    }
+
+    public async Task<List<string>> GetModifiedFilesLatestCommit(
+        string commit = "HEAD")
+    {
+        var modifiedFiles = new List<string>();
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("diff-tree")
+                .Add("--no-commit-id")
+                .Add("--name-only")
+                .Add("-r")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(modifiedFiles.Add))
+            .ExecuteAsync();
+
+        return modifiedFiles;
     }
 }
 

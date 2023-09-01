@@ -5,12 +5,41 @@ using Nuke.Common.Tooling;
 using CliWrap;
 using Serilog;
 using Nuke.Common.IO;
+using System.Text.Json;
 
 public sealed partial class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Version);
 
     [PathExecutable("bash")] private readonly Tool Bash = null!;
+
+    public Target CreateVersionChangeCommit => _ => _
+        .Executes(() => Feature)
+        .Executes(async () =>
+        {
+            var json = File.ReadAllText(PathToFeatureDefinition);
+            var feature = JsonSerializer.Deserialize<Feature>(json);
+            var version = System.Version.Parse(feature?.Version!);
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("add")
+                    .Add(PathToFeatureDefinition))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
+                .ExecuteAsync();
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("commit")
+                    .Add("--include")
+                    .Add(PathToFeatureDefinition)
+                    .Add("--message")
+                    .Add($"chore(version): Release feature/{Feature} {version}"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
+                .ExecuteAsync();
+        });
 
     public Target Version => _ => _
         .Requires(() => Feature)
@@ -22,7 +51,7 @@ public sealed partial class Build : NukeBuild
 
             var versionJsonElement = document.Root["version"];
 
-            var version = new Version(versionJsonElement!.GetValue<string>());
+            var version = new System.Version(versionJsonElement!.GetValue<string>());
             Log.Information("old version: {version}", version);
 
             var latestGitTag = await GetLatestTag(Feature);

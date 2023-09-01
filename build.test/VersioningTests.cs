@@ -1,3 +1,6 @@
+using FluentAssertions.Execution;
+using Nuke.Common.IO;
+
 namespace build.test;
 
 public sealed class VersioningTests : IAsyncLifetime
@@ -10,7 +13,7 @@ public sealed class VersioningTests : IAsyncLifetime
         {
             KeepCommits = false,
             KeepFiles = false,
-            KeepTags = false
+            KeepTags = false,
         };
     }
 
@@ -24,18 +27,16 @@ public sealed class VersioningTests : IAsyncLifetime
     {
         feature = feature.Replace("-", string.Empty);
         var gitTag = fixture.GetTagForFeature(feature);
-        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
         var featureRoot = fixture.GetFeatureRoot(feature);
         var featureFile = fixture.GetFeatureConfig(feature);
 
         await this.fixture.AddGitTag(gitTag);
-
         await fixture.CreateFeatureConfig(feature, major, minor, build);
         await fixture.Commit(featureRoot, $"feat: {message}");
         fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
-        await fixture.RunBuild(feature);
+        await fixture.RunVersionTarget(feature);
 
         var version = await fixture.GetVersion(feature);
 
@@ -54,7 +55,6 @@ public sealed class VersioningTests : IAsyncLifetime
     {
         feature = feature.Replace("-", string.Empty);
         var gitTag = fixture.GetTagForFeature(feature);
-        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
         var featureRoot = fixture.GetFeatureRoot(feature);
         var featureFile = fixture.GetFeatureConfig(feature);
 
@@ -64,7 +64,7 @@ public sealed class VersioningTests : IAsyncLifetime
         fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
-        await fixture.RunBuild(feature);
+        await fixture.RunVersionTarget(feature);
 
         var version = await fixture.GetVersion(feature);
 
@@ -86,7 +86,6 @@ public sealed class VersioningTests : IAsyncLifetime
         var featureRoot = fixture.GetFeatureRoot(feature);
         var rightTag = fixture.GetTagForFeature(feature);
         wrongTag = wrongTag.Replace("-", "");
-        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
 
         await fixture.AddGitTag(rightTag);
         await fixture.CreateFeatureConfig(feature, major, minor, build);
@@ -95,7 +94,7 @@ public sealed class VersioningTests : IAsyncLifetime
         fixture.CreateTempFile(featureRoot / "foo");
         await fixture.Commit(featureRoot, $"chore: {message}");
 
-        await fixture.RunBuild(feature);
+        await fixture.RunVersionTarget(feature);
 
         var version = await fixture.GetVersion(feature);
 
@@ -118,7 +117,6 @@ public sealed class VersioningTests : IAsyncLifetime
         var featureRoot = fixture.GetFeatureRoot(feature);
         var rightTag = fixture.GetTagForFeature(feature);
         wrongTag = wrongTag.Replace("-", "");
-        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
 
         await fixture.AddGitTag(rightTag);
         await fixture.CreateFeatureConfig(feature, major, minor, build);
@@ -127,13 +125,48 @@ public sealed class VersioningTests : IAsyncLifetime
         fixture.CreateTempFile(fixture.RootDirectory / tempFileName);
         await fixture.Commit(fixture.RootDirectory / tempFileName, $"feat: {message}");
 
-        await fixture.RunBuild(feature);
+        await fixture.RunVersionTarget(feature);
 
         var version = await fixture.GetVersion(feature);
 
         version
             .Should()
             .Be($"{major}.{minor + 1}.0");
+    }
+
+    [Theory, AutoData]
+    public async Task Commit_NewCommitIsCreated(
+        string feature,
+        int major,
+        int minor,
+        int build)
+    {
+        feature = feature.Replace("-", string.Empty);
+        var featureConfig = fixture
+            .RootDirectory
+            .GetRelativePathTo(fixture.GetFeatureConfig(feature));
+
+        await fixture.CreateFeatureConfig(feature, major, minor, build);
+
+        await fixture.RunBuild(args => args
+            .Add("--target")
+            .Add("CreateVersionChangeCommit")
+            .Add("--feature")
+            .Add(feature));
+
+        var expectedMessage = await fixture.GetLatestCommitMessage();
+        var modifiedFiles = await fixture.GetModifiedFilesLatestCommit();
+
+        using (new AssertionScope())
+        {
+            expectedMessage
+                .Should()
+                .Be($"chore(version): Release feature/{feature} {major}.{minor}.{build}");
+
+            modifiedFiles
+                .Should()
+                .Equal(featureConfig);
+        }
     }
 
     public async Task InitializeAsync() => await fixture.SaveCommit("HEAD");
