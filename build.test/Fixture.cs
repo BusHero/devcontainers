@@ -1,163 +1,225 @@
 using System.Text.Json;
 using CliWrap;
+using Nuke.Common;
+using Nuke.Common.IO;
 
 namespace build.test;
 
 internal sealed class CustomFixture : IAsyncDisposable
 {
-	private readonly List<string> tags = new();
+    private readonly List<string> tags = new();
+    private readonly List<string> tempFiles = new();
+    private int commitsCount = 0;
 
-	private int commitsCount = 0;
+    public bool KeepFiles { get; init; }
 
-	private string? directoryToRemove;
+    public bool KeepTags { get; init; }
 
-	public bool KeepFiles { get; init; }
+    public bool KeepCommits { get; init; }
 
-	public bool KeepTags { get; init; }
+    public AbsolutePath RootDirectory => NukeBuild.RootDirectory;
 
-	public bool KeepCommits { get; init; }
+    public async ValueTask DisposeAsync()
+    {
+        if (!KeepTags)
+        {
+            await DeleteGitTags(this.tags);
+        }
 
-	public async ValueTask DisposeAsync()
-	{
-		if (!KeepFiles)
-		{
-			RemoveDirectory(directoryToRemove);
-		}
+        if (!KeepCommits)
+        {
+            await RevertCommits(commitsCount);
+        }
 
-		if (!KeepTags)
-		{
-			await DeleteGitTags(this.tags);
-		}
+        if (!KeepFiles)
+        {
+            RemoveTempFiles(tempFiles);
+            await RestoreFiles(tempFiles);
+        }
+    }
 
-		if (!KeepCommits)
-		{
-			await RevertCommits(commitsCount);
-		}
-	}
+    private async Task RestoreFiles(IReadOnlyCollection<string> files)
+    {
+        if (files.Count == 0)
+        {
+            return;
+        }
 
-	public string GetRightTag(string feature) => $"feature_{feature}";
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("restore")
+                .Add("--staged")
+                .Add("--progress")
+                .Add(files))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+    }
 
-	public async Task RevertCommits(int numberOfCommits)
-	{
-		if (numberOfCommits <= 0)
-		{
-			return;
-		}
+    public string GetTagForFeature(string feature) => $"feature_{feature}";
 
-		await Cli.Wrap("git")
-			.WithArguments(args => args
-				.Add("reset")
-				.Add("--no-refresh")
-				.Add("--soft")
-				.Add($"HEAD~{numberOfCommits}")
-				.Add("--quiet"))
-			.WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-			.ExecuteAsync();
-	}
+    public async Task RevertCommits(int numberOfCommits)
+    {
+        if (numberOfCommits <= 0)
+        {
+            return;
+        }
 
-	public void RemoveDirectory(string? directory)
-	{
-		if (Directory.Exists(directory))
-			Directory.Delete(directory, true);
-	}
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("reset")
+                .Add("--no-refresh")
+                .Add("--soft")
+                .Add($"HEAD~{numberOfCommits}"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+    }
 
-	public async Task CreateFeatureFile(
-		string pathToFeature,
-		int major,
-		int minor,
-		int build)
-	{
-		var directoryName = Path.GetDirectoryName(pathToFeature);
+    public void RemoveTempFiles(IReadOnlyCollection<string> tempFiles)
+    {
+        if (tempFiles.Count == 0)
+        {
+            return;
+        }
 
-		Directory.CreateDirectory(directoryName!);
+        foreach (var file in tempFiles)
+        {
+            if (Directory.Exists(file))
+            {
+                Directory.Delete(file, true);
+            }
+            else if (File.Exists(file))
+            {
+                File.Delete(file);
+            }
+        }
+    }
 
-		await File.WriteAllTextAsync(
-			pathToFeature,
-			$$"""{ "version": "{{major}}.{{minor}}.{{build}}" }""");
+    public void CreateTempDirectory(string path)
+    {
+        Directory.CreateDirectory(path);
+        this.tempFiles.Add(path);
+    }
 
-		this.directoryToRemove = directoryName;
-	}
+    public void CreateTempFile(string path)
+    {
+        File.Create(path);
+        this.tempFiles.Add(path);
+    }
 
-	public async Task<string?> GetVersion(string path)
-	{
-		using var fileStream = File.OpenRead(path);
-		var document = await JsonDocument.ParseAsync(fileStream);
+    public async Task CreateFeatureConfig(
+        string featureName,
+        int major,
+        int minor,
+        int build)
+    {
+        this.CreateTempDirectory(GetFeatureRoot(featureName));
 
-		return document.RootElement.GetProperty("version").GetString();
-	}
+        await File.WriteAllTextAsync(
+            GetFeatureConfig(featureName),
+            $$"""{ "version": "{{major}}.{{minor}}.{{build}}" }""");
+    }
 
-	public async Task RunBuild(string feature)
-	{
-		await Cli.Wrap("dotnet")
-			.WithArguments(args => args
-				.Add("run")
-				.Add("--project")
-				.Add("/workspaces/devcontainers/build")
-				.Add("Version")
-				.Add("--feature")
-				.Add(feature)
-				.Add("--no-logo")
-				.Add("--verbosity")
-				.Add("Quiet"))
-			.ExecuteAsync();
-	}
+    public AbsolutePath GetFeatureRoot(string featureName)
+        => NukeBuild.RootDirectory
+            / "features"
+            / "src"
+            / featureName;
 
-	public async Task Commit(
-		string path,
-		string message)
-	{
-		await Cli.Wrap("git")
-			.WithArguments(args => args
-				.Add("add")
-				.Add(path))
-			.ExecuteAsync();
+    public AbsolutePath GetFeatureConfig(string featureName)
+        => GetFeatureRoot(featureName)
+            / "devcontainer-feature.json";
 
-		await Cli.Wrap("git")
-			.WithArguments(args => args
-				.Add("commit")
-				.Add("--include")
-				.Add(path)
-				.Add("--message")
-				.Add(message)
-				.Add("--quiet"))
-			.ExecuteAsync();
+    public async Task<string?> GetVersion(string feature)
+    {
+        var featureConfig = this.GetFeatureConfig(feature);
+        using var fileStream = File.OpenRead(featureConfig);
+        var document = await JsonDocument.ParseAsync(fileStream);
 
-		this.commitsCount++;
-	}
+        return document.RootElement.GetProperty("version").GetString();
+    }
 
-	public async Task AddGitTag(
-		string tag,
-		string commit = "HEAD")
-	{
-		await Cli.Wrap("git")
-			.WithArguments(args => args
-				.Add("tag")
-				.Add(tag)
-				.Add(commit))
-			.ExecuteAsync();
-		this.tags.Add(tag);
-	}
+    public async Task RunBuild(string feature)
+    {
+        await Cli.Wrap("dotnet")
+            .WithArguments(args => args
+                .Add("run")
+                .Add("--project")
+                .Add("/workspaces/devcontainers/build")
+                .Add("Version")
+                .Add("--feature")
+                .Add(feature)
+                .Add("--no-logo"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+    }
 
-	public async Task DeleteGitTags(IReadOnlyCollection<string> tags)
-	{
-		if (tags.Count is 0)
-		{
-			return;
-		}
+    public async Task Commit(
+        string path,
+        string message)
+    {
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("add")
+                .Add(path))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
 
-		await Cli.Wrap("git")
-			.WithArguments(args =>
-			{
-				args
-					.Add("tag")
-					.Add("--delete");
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("commit")
+                .Add("--include")
+                .Add(path)
+                .Add("--message")
+                .Add(message))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
 
-				foreach (var tag in tags)
-				{
-					args.Add(tag);
-				}
-			})
-			.WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-			.ExecuteAsync();
-	}
+        this.commitsCount++;
+    }
+
+    public async Task AddGitTag(
+        string tag,
+        string commit = "HEAD")
+    {
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("tag")
+                .Add(tag)
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+        this.tags.Add(tag);
+    }
+
+    public async Task DeleteGitTags(IReadOnlyCollection<string> tags)
+    {
+        if (tags.Count is 0)
+        {
+            return;
+        }
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("tag")
+                .Add("--delete")
+                .Add(tags))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+    }
+}
+
+public static class EnumerableExtenssions
+{
+    public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+    {
+        foreach (var item in items)
+        {
+            action(item);
+        }
+    }
+
+    public static void ForEach<T, TReturn>(
+        this IEnumerable<T> items,
+        Func<T, TReturn> action)
+        => items.ForEach(x => { action(x); });
 }

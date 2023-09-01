@@ -73,7 +73,6 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "Foo",
               "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",
@@ -96,7 +95,6 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
-              "Foo",
               "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",

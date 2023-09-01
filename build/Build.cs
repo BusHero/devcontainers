@@ -4,6 +4,7 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using CliWrap;
 using Serilog;
+using Nuke.Common.IO;
 
 public sealed partial class Build : NukeBuild
 {
@@ -25,14 +26,12 @@ public sealed partial class Build : NukeBuild
             Log.Information("old version: {version}", version);
 
             var latestGitTag = await GetLatestTag(Feature);
-            Log.Information("{tag}", latestGitTag);
 
             var commits = latestGitTag switch
             {
                 null => new List<string>(),
-                _ => await GetCommitsTillTag(latestGitTag)
+                _ => await GetCommitsTillTag(latestGitTag, RelativeFeatureRoot)
             };
-            Log.Information("commits: {commits}", commits);
             if (commits.Any(x => x.StartsWith("feat:")))
             {
                 version = version.IncrementMajor();
@@ -47,13 +46,6 @@ public sealed partial class Build : NukeBuild
 
             var outputJson = document.ToJsonString();
             await File.WriteAllTextAsync(PathToFeatureDefinition, outputJson);
-        });
-
-    private Target Foo => _ => _
-        .Executes(async () =>
-        {
-            var message = await GetLatestCommitMessage();
-            Log.Information("{tags}", message);
         });
 
     private async Task<string?> GetLatestTag(string feature)
@@ -73,50 +65,50 @@ public sealed partial class Build : NukeBuild
         return tags.FirstOrDefault();
     }
 
-    private async Task<List<string>> GetCommitsTillTag(string tag)
+    private async Task<List<string>> GetCommitsTillTag(
+        string tag,
+        RelativePath path)
     {
-        Log.Information("{msg}", "Here is nice");
         var commits = new List<string>();
 
         await Cli.Wrap("git")
             .WithArguments(args => args
                 .Add("rev-list")
                 .Add($"{tag}..HEAD")
-                .Add("--pretty=%s")
                 .Add("--no-commit-header"))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(commits.Add))
             .ExecuteAsync();
 
-        return commits;
-    }
+        var commitMessages = new List<string>();
+        foreach (var commit in commits)
+        {
+            var modifiedFiles = new List<string>();
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("diff-tree")
+                    .Add("--no-commit-id")
+                    .Add("--name-only")
+                    .Add("-r")
+                    .Add(commit))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(modifiedFiles.Add))
+                .ExecuteAsync();
 
-    private async Task<string> GetLatestCommitMessage()
-    {
-        var output = new List<string>();
+            if (!modifiedFiles.Any(x => x.StartsWith(path)))
+            {
+                continue;
+            }
 
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("rev-list")
-                .Add("HEAD")
-                .Add("--pretty=%s")
-                .Add("--no-commit-header")
-                .Add("-n1"))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(output.Add))
-            .ExecuteAsync();
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("rev-list")
+                    .Add("--max-count=1")
+                    .Add("--no-commit-header")
+                    .Add("--format=%s")
+                    .Add(commit))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(commitMessages.Add))
+                .ExecuteAsync();
+        }
 
-        return output[0];
-    }
-
-    private async Task<List<string>> GetGitTags()
-    {
-        var tags = new List<string>();
-
-        var foo = await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("tag"))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
-            .ExecuteAsync();
-
-        return tags;
+        return commitMessages;
     }
 }
