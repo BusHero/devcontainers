@@ -73,6 +73,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "CreateVersionChangeCommit",
               "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",
@@ -95,6 +96,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "CreateVersionChangeCommit",
               "GenerateDocumentationFeature",
               "GetFeatures",
               "GetTemplates",

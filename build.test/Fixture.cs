@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CliWrap;
+using CliWrap.Builders;
 using Nuke.Common;
 using Nuke.Common.IO;
 
@@ -7,9 +8,19 @@ namespace build.test;
 
 internal sealed class CustomFixture : IAsyncDisposable
 {
-    private readonly List<string> tags = new();
+    private readonly List<Tag> tags = new();
     private readonly List<string> tempFiles = new();
-    private int commitsCount = 0;
+    private string? commitToRestore;
+
+    public async Task SaveCommit(string commit)
+    {
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-parse")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitToRestore = x))
+            .ExecuteAsync();
+    }
 
     public bool KeepFiles { get; init; }
 
@@ -28,7 +39,7 @@ internal sealed class CustomFixture : IAsyncDisposable
 
         if (!KeepCommits)
         {
-            await RevertCommits(commitsCount);
+            await RevertCommits(commitToRestore);
         }
 
         if (!KeepFiles)
@@ -52,14 +63,13 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--progress")
                 .Add(files))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
     }
 
-    public string GetTagForFeature(string feature) => $"feature_{feature}";
-
-    public async Task RevertCommits(int numberOfCommits)
+    public async Task RevertCommits(string? commit)
     {
-        if (numberOfCommits <= 0)
+        if (string.IsNullOrEmpty(commit))
         {
             return;
         }
@@ -69,7 +79,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("reset")
                 .Add("--no-refresh")
                 .Add("--soft")
-                .Add($"HEAD~{numberOfCommits}"))
+                .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
@@ -107,55 +117,64 @@ internal sealed class CustomFixture : IAsyncDisposable
     }
 
     public async Task CreateFeatureConfig(
-        string featureName,
-        int major,
-        int minor,
-        int build)
+        Feature featureName,
+        Version version)
     {
-        this.CreateTempDirectory(GetFeatureRoot(featureName));
+        this.CreateTempDirectory(featureName.GetFeatureRoot(RootDirectory));
 
-        await File.WriteAllTextAsync(
-            GetFeatureConfig(featureName),
-            $$"""{ "version": "{{major}}.{{minor}}.{{build}}" }""");
+        var featureConfig = featureName.GetFeatureConfig(RootDirectory);
+        var json = $$"""
+            {
+                "version": "{{version}}",
+                "id": "{{featureName}}",
+                "name": "{{featureName}}"
+            }
+            """;
+
+        await File.WriteAllTextAsync(featureConfig, json);
     }
 
-    public AbsolutePath GetFeatureRoot(string featureName)
-        => NukeBuild.RootDirectory
-            / "features"
-            / "src"
-            / featureName;
-
-    public AbsolutePath GetFeatureConfig(string featureName)
-        => GetFeatureRoot(featureName)
-            / "devcontainer-feature.json";
-
-    public async Task<string?> GetVersion(string feature)
+    public async Task<string?> GetVersion(Feature feature)
     {
-        var featureConfig = this.GetFeatureConfig(feature);
+        var featureConfig = feature.GetFeatureConfig(RootDirectory);
         using var fileStream = File.OpenRead(featureConfig);
         var document = await JsonDocument.ParseAsync(fileStream);
 
         return document.RootElement.GetProperty("version").GetString();
     }
 
-    public async Task RunBuild(string feature)
+    public async Task RunBuild(Func<ArgumentsBuilder, ArgumentsBuilder> configure)
     {
         await Cli.Wrap("dotnet")
-            .WithArguments(args => args
-                .Add("run")
-                .Add("--project")
-                .Add("/workspaces/devcontainers/build")
-                .Add("Version")
-                .Add("--feature")
-                .Add(feature)
+            .WithArguments(args => configure(args
+                    .Add("run")
+                    .Add("--project")
+                    .Add("/workspaces/devcontainers/build"))
                 .Add("--no-logo"))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
 
+    public async Task RunCreateReleaseCommitTarget(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("--target")
+            .Add("CreateVersionChangeCommit")
+            .Add("--feature")
+            .Add(feature));
+    }
+
+    public async Task RunVersionTarget(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("Version")
+            .Add("--feature")
+            .Add(feature));
+    }
+
     public async Task Commit(
-        string path,
-        string message)
+        CommitMessage message,
+        string path)
     {
         await Cli.Wrap("git")
             .WithArguments(args => args
@@ -173,12 +192,10 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(message))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
-
-        this.commitsCount++;
     }
 
     public async Task AddGitTag(
-        string tag,
+        Tag tag,
         string commit = "HEAD")
     {
         await Cli.Wrap("git")
@@ -191,7 +208,7 @@ internal sealed class CustomFixture : IAsyncDisposable
         this.tags.Add(tag);
     }
 
-    public async Task DeleteGitTags(IReadOnlyCollection<string> tags)
+    public async Task DeleteGitTags(IReadOnlyCollection<Tag> tags)
     {
         if (tags.Count is 0)
         {
@@ -202,24 +219,99 @@ internal sealed class CustomFixture : IAsyncDisposable
             .WithArguments(args => args
                 .Add("tag")
                 .Add("--delete")
-                .Add(tags))
+                .Add(tags.Select(x => x.ToString())))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
-}
 
-public static class EnumerableExtenssions
-{
-    public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+    public async Task<string> GetLatestCommitMessage()
     {
-        foreach (var item in items)
-        {
-            action(item);
-        }
+        var commitMessage = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-list")
+                .Add("HEAD")
+                .Add("--pretty=%s")
+                .Add("--no-commit-header")
+                .Add("-n1"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitMessage = x))
+            .ExecuteAsync();
+
+        return commitMessage;
     }
 
-    public static void ForEach<T, TReturn>(
-        this IEnumerable<T> items,
-        Func<T, TReturn> action)
-        => items.ForEach(x => { action(x); });
+    public async Task<string> GetLatestTag(string feature)
+    {
+        var tag = string.Empty;
+
+        var result = await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("describe")
+                .Add("--abbrev=0")
+                .Add("--tags")
+                .Add("--match")
+                .Add($"feature_{feature}*"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
+            .ExecuteAsync();
+
+        return tag;
+    }
+
+    public async Task<List<string>> GetModifiedFilesLatestCommit(
+        string commit = "HEAD")
+    {
+        var modifiedFiles = new List<string>();
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("diff-tree")
+                .Add("--no-commit-id")
+                .Add("--name-only")
+                .Add("-r")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(modifiedFiles.Add))
+            .ExecuteAsync();
+
+        return modifiedFiles;
+    }
+}
+
+public static class FeatureExtenssions
+{
+    public static Tag GetTag(this Feature feature) => new($"feature_{feature}");
+
+    public static AbsolutePath GetFeatureRoot(
+        this Feature feature,
+        AbsolutePath projectRoot) => projectRoot
+            / "features"
+            / "src"
+            / feature;
+
+    public static AbsolutePath GetFeatureConfig(
+        this Feature featureName,
+        AbsolutePath projectRoot)
+        => featureName.GetFeatureRoot(projectRoot)
+            / "devcontainer-feature.json";
+
+    public static string GetRelativePathToConfig(this Feature feature)
+        => Path.Combine("features", "src", feature, "devcontainer-feature.json");
+
+    public static async Task<string?> GetVersion(
+        this Feature feature,
+        AbsolutePath projectRoot)
+    {
+        var featureConfig = feature.GetFeatureConfig(projectRoot);
+        using var fileStream = File.OpenRead(featureConfig);
+        var document = await JsonDocument.ParseAsync(fileStream);
+
+        return document.RootElement.GetProperty("version").GetString();
+    }
+
+    public static void CreateTempFile(
+        this Feature feature,
+        AbsolutePath root)
+    {
+        using var _ = File.Create(feature.GetFeatureRoot(root) / $"tmp_{Guid.NewGuid():N}");
+    }
 }
