@@ -9,7 +9,17 @@ internal sealed class CustomFixture : IAsyncDisposable
 {
     private readonly List<string> tags = new();
     private readonly List<string> tempFiles = new();
-    private int commitsCount = 0;
+    private string? commitToRestore;
+
+    public async Task SaveCommit(string commit)
+    {
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-parse")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitToRestore = x))
+            .ExecuteAsync();
+    }
 
     public bool KeepFiles { get; init; }
 
@@ -28,7 +38,7 @@ internal sealed class CustomFixture : IAsyncDisposable
 
         if (!KeepCommits)
         {
-            await RevertCommits(commitsCount);
+            await RevertCommits(commitToRestore);
         }
 
         if (!KeepFiles)
@@ -57,9 +67,9 @@ internal sealed class CustomFixture : IAsyncDisposable
 
     public string GetTagForFeature(string feature) => $"feature_{feature}";
 
-    public async Task RevertCommits(int numberOfCommits)
+    public async Task RevertCommits(string commit)
     {
-        if (numberOfCommits <= 0)
+        if (string.IsNullOrEmpty(commit))
         {
             return;
         }
@@ -69,7 +79,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("reset")
                 .Add("--no-refresh")
                 .Add("--soft")
-                .Add($"HEAD~{numberOfCommits}"))
+                .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
@@ -173,8 +183,6 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(message))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
-
-        this.commitsCount++;
     }
 
     public async Task AddGitTag(

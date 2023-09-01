@@ -136,7 +136,7 @@ public sealed class VersioningTests : IAsyncLifetime
             .Be($"{major}.{minor + 1}.0");
     }
 
-    public async Task InitializeAsync() => await Task.CompletedTask;
+    public async Task InitializeAsync() => await fixture.SaveCommit("HEAD");
 
     public async Task DisposeAsync() => await fixture.DisposeAsync();
 }
