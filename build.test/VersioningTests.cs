@@ -1,12 +1,10 @@
-using Xunit.Abstractions;
-
 namespace build.test;
 
 public sealed class VersioningTests : IAsyncLifetime
 {
     private readonly CustomFixture fixture;
 
-    public VersioningTests(ITestOutputHelper outputHelper)
+    public VersioningTests()
     {
         this.fixture = new CustomFixture
         {
