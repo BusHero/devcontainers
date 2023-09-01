@@ -15,7 +15,6 @@ sealed partial class Build
 
     private AbsolutePath PathToReadme => FeaturesRoot / "src" / Feature / "README.md";
 
-
     Target GenerateDocumentationFeature => _ => _
         .Requires(() => Feature)
         .Executes(async () =>

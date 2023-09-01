@@ -1,4 +1,4 @@
-using Nuke.Common;
+using Xunit.Abstractions;
 
 namespace build.test;
 
@@ -6,7 +6,7 @@ public sealed class VersioningTests : IAsyncLifetime
 {
     private readonly CustomFixture fixture;
 
-    public VersioningTests()
+    public VersioningTests(ITestOutputHelper outputHelper)
     {
         this.fixture = new CustomFixture
         {
@@ -16,8 +16,7 @@ public sealed class VersioningTests : IAsyncLifetime
         };
     }
 
-    [Theory]
-    [AutoData]
+    [Theory, AutoData]
     public async Task TwoCommits_FeatAndChore_UpdatesMajor(
         string feature,
         int major,
@@ -47,8 +46,7 @@ public sealed class VersioningTests : IAsyncLifetime
             .Be($"{major + 1}.0.0");
     }
 
-    [Theory]
-    [AutoData]
+    [Theory, AutoData]
     public async Task TwoCommits_ChoreAndChore_UpdatesChore(
         string feature,
         int major,
@@ -77,8 +75,7 @@ public sealed class VersioningTests : IAsyncLifetime
             .Be($"{major}.{minor + 1}.0");
     }
 
-    [Theory]
-    [AutoData]
+    [Theory, AutoData]
     public async Task UseTheRightTag(
         string feature,
         int major,
@@ -107,6 +104,38 @@ public sealed class VersioningTests : IAsyncLifetime
         version
             .Should()
             .Be($"{major + 1}.0.0");
+    }
+
+    [Theory, AutoData]
+    public async Task UseTheRightCommit(
+        string feature,
+        string tempFileName,
+        int major,
+        int minor,
+        int build,
+        string wrongTag,
+        string message)
+    {
+        feature = feature.Replace("-", string.Empty);
+        var featureRoot = fixture.GetFeatureRoot(feature);
+        var rightTag = fixture.GetTagForFeature(feature);
+        wrongTag = wrongTag.Replace("-", "");
+        (major, minor, build) = (Math.Abs(major), Math.Abs(minor), Math.Abs(build));
+
+        await fixture.AddGitTag(rightTag);
+        await fixture.CreateFeatureConfig(feature, major, minor, build);
+        await fixture.Commit(featureRoot, $"chore: {message}");
+        await fixture.AddGitTag(wrongTag);
+        fixture.CreateTempFile(fixture.RootDirectory / tempFileName);
+        await fixture.Commit(fixture.RootDirectory / tempFileName, $"feat: {message}");
+
+        await fixture.RunBuild(feature);
+
+        var version = await fixture.GetVersion(feature);
+
+        version
+            .Should()
+            .Be($"{major}.{minor + 1}.0");
     }
 
     public async Task InitializeAsync() => await Task.CompletedTask;

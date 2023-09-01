@@ -1,6 +1,5 @@
 using System.Text.Json;
 using CliWrap;
-using Fare;
 using Nuke.Common;
 using Nuke.Common.IO;
 
@@ -10,7 +9,6 @@ internal sealed class CustomFixture : IAsyncDisposable
 {
     private readonly List<string> tags = new();
     private readonly List<string> tempFiles = new();
-
     private int commitsCount = 0;
 
     public bool KeepFiles { get; init; }
@@ -19,13 +17,10 @@ internal sealed class CustomFixture : IAsyncDisposable
 
     public bool KeepCommits { get; init; }
 
+    public AbsolutePath RootDirectory => NukeBuild.RootDirectory;
+
     public async ValueTask DisposeAsync()
     {
-        if (!KeepFiles)
-        {
-            RemoveDirectory(tempFiles);
-        }
-
         if (!KeepTags)
         {
             await DeleteGitTags(this.tags);
@@ -35,6 +30,29 @@ internal sealed class CustomFixture : IAsyncDisposable
         {
             await RevertCommits(commitsCount);
         }
+
+        if (!KeepFiles)
+        {
+            RemoveTempFiles(tempFiles);
+            await RestoreFiles(tempFiles);
+        }
+    }
+
+    private async Task RestoreFiles(IReadOnlyCollection<string> files)
+    {
+        if (files.Count == 0)
+        {
+            return;
+        }
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("restore")
+                .Add("--staged")
+                .Add("--progress")
+                .Add(files))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
     }
 
     public string GetTagForFeature(string feature) => $"feature_{feature}";
@@ -51,13 +69,12 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("reset")
                 .Add("--no-refresh")
                 .Add("--soft")
-                .Add($"HEAD~{numberOfCommits}")
-                .Add("--quiet"))
+                .Add($"HEAD~{numberOfCommits}"))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
 
-    public void RemoveDirectory(IReadOnlyCollection<string> tempFiles)
+    public void RemoveTempFiles(IReadOnlyCollection<string> tempFiles)
     {
         if (tempFiles.Count == 0)
         {
@@ -131,9 +148,8 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("Version")
                 .Add("--feature")
                 .Add(feature)
-                .Add("--no-logo")
-                .Add("--verbosity")
-                .Add("Quiet"))
+                .Add("--no-logo"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
 
@@ -145,6 +161,7 @@ internal sealed class CustomFixture : IAsyncDisposable
             .WithArguments(args => args
                 .Add("add")
                 .Add(path))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
 
         await Cli.Wrap("git")
@@ -153,8 +170,8 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--include")
                 .Add(path)
                 .Add("--message")
-                .Add(message)
-                .Add("--quiet"))
+                .Add(message))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
 
         this.commitsCount++;
@@ -169,6 +186,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("tag")
                 .Add(tag)
                 .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
         this.tags.Add(tag);
     }
@@ -181,18 +199,27 @@ internal sealed class CustomFixture : IAsyncDisposable
         }
 
         await Cli.Wrap("git")
-            .WithArguments(args =>
-            {
-                args
-                    .Add("tag")
-                    .Add("--delete");
-
-                foreach (var tag in tags)
-                {
-                    args.Add(tag);
-                }
-            })
+            .WithArguments(args => args
+                .Add("tag")
+                .Add("--delete")
+                .Add(tags))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
+}
+
+public static class EnumerableExtenssions
+{
+    public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+    {
+        foreach (var item in items)
+        {
+            action(item);
+        }
+    }
+
+    public static void ForEach<T, TReturn>(
+        this IEnumerable<T> items,
+        Func<T, TReturn> action)
+        => items.ForEach(x => { action(x); });
 }
