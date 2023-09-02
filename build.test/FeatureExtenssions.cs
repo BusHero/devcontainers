@@ -5,7 +5,9 @@ namespace build.test;
 
 public static class FeatureExtenssions
 {
-	public static Tag GetTag(this Feature feature) => new($"feature_{feature}");
+	public static Tag GetTag(
+		this Feature feature,
+		Version version) => new($"feature_{feature}_{version}");
 
 	public static AbsolutePath GetRoot(
 		this Feature feature,

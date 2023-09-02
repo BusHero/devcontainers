@@ -19,7 +19,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag());
+        await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
         await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
         feature.CreateTempFile(fixture.RootDirectory);
@@ -39,7 +39,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag());
+        await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
         await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
         feature.CreateTempFile(fixture.RootDirectory);
@@ -60,7 +60,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Version version,
         Tag wrongTag)
     {
-        await fixture.AddGitTag(feature.GetTag());
+        await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
         await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
         await fixture.AddGitTag(wrongTag);
@@ -81,7 +81,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag());
+        await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
         await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
         var tempFileName = fixture.CreateTempFile();
@@ -126,7 +126,26 @@ public sealed class VersioningTests : IAsyncLifetime
             .Equal(feature.GetRelativePathToConfig());
     }
 
-    public async Task InitializeAsync() => await fixture.SaveCommit("HEAD");
+    [Theory, AutoData]
+    public async Task CreateTagForReleaseWithRightName(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await fixture.RunCreateReleaseTagTarget(feature);
+
+        var tag = await fixture.GetLatestTag(feature);
+
+        tag.Should()
+            .Be(feature.GetTag(version));
+    }
+
+    public async Task InitializeAsync()
+    {
+        await fixture.SaveCommit("HEAD");
+        await fixture.SaveTags();
+    }
 
     public async Task DisposeAsync() => await fixture.DisposeAsync();
 }

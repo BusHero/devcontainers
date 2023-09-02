@@ -8,8 +8,8 @@ namespace build.test;
 
 internal sealed class CustomFixture : IAsyncDisposable
 {
-    private readonly List<Tag> tags = new();
     private readonly List<string> tempFiles = new();
+
     private string? commitToRestore;
 
     public async Task SaveCommit(string commit)
@@ -34,7 +34,7 @@ internal sealed class CustomFixture : IAsyncDisposable
     {
         if (!KeepTags)
         {
-            await DeleteGitTags(this.tags);
+            await DeleteGitTags();
         }
 
         if (!KeepCommits)
@@ -152,18 +152,6 @@ internal sealed class CustomFixture : IAsyncDisposable
         return document.RootElement.GetProperty("version").GetString();
     }
 
-    public async Task RunBuild(Func<ArgumentsBuilder, ArgumentsBuilder> configure)
-    {
-        await Cli.Wrap("dotnet")
-            .WithArguments(args => configure(args
-                    .Add("run")
-                    .Add("--project")
-                    .Add("/workspaces/devcontainers/build"))
-                .Add("--no-logo"))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .ExecuteAsync();
-    }
-
     public async Task RunCreateReleaseCommitTarget(Feature feature)
     {
         await RunBuild(args => args
@@ -179,6 +167,26 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add("Version")
             .Add("--feature")
             .Add(feature));
+    }
+
+    public async Task RunCreateReleaseTagTarget(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("CreateReleaseTag")
+            .Add("--feature")
+            .Add(feature));
+    }
+
+    public async Task RunBuild(Func<ArgumentsBuilder, ArgumentsBuilder> configure)
+    {
+        await Cli.Wrap("dotnet")
+            .WithArguments(args => configure(args
+                    .Add("run")
+                    .Add("--project")
+                    .Add("/workspaces/devcontainers/build"))
+                .Add("--no-logo"))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
     }
 
     public async Task AddAndCommit(
@@ -214,12 +222,19 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
-        this.tags.Add(tag);
     }
 
-    public async Task DeleteGitTags(IReadOnlyCollection<Tag> tags)
+    public async Task DeleteGitTags()
     {
-        if (tags.Count is 0)
+        var tags = new List<string>();
+
+        await Cli.Wrap("git")
+            .WithArguments("tag")
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
+            .ExecuteAsync();
+
+        var tagsToDelete = tags.Except(originalTags).ToList();
+        if (tagsToDelete.Count == 0)
         {
             return;
         }
@@ -228,7 +243,7 @@ internal sealed class CustomFixture : IAsyncDisposable
             .WithArguments(args => args
                 .Add("tag")
                 .Add("--delete")
-                .Add(tags.Select(x => x.ToString())))
+                .Add(tagsToDelete))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
@@ -283,5 +298,15 @@ internal sealed class CustomFixture : IAsyncDisposable
             .ExecuteAsync();
 
         return modifiedFiles;
+    }
+
+    private readonly List<string> originalTags = new();
+
+    internal async Task SaveTags()
+    {
+        await Cli.Wrap("git")
+            .WithArguments("tag")
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(originalTags.Add))
+            .ExecuteAsync();
     }
 }

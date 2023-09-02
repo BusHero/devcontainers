@@ -13,6 +13,24 @@ public sealed partial class Build : NukeBuild
 
     [PathExecutable("bash")] private readonly Tool Bash = null!;
 
+    public Target CreateReleaseTag => _ => _
+        .Requires(() => Feature)
+        .Executes(async () =>
+        {
+            var json = File.ReadAllText(PathToFeatureDefinition);
+            var feature = JsonSerializer.Deserialize<Feature>(json);
+            var version = feature?.Version!;
+
+            var tag = $"feature_{Feature}_{version}";
+            Log.Information("New tag: {tag}", tag);
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("tag")
+                    .Add(tag))
+                .ExecuteAsync();
+        });
+
     public Target CreateVersionChangeCommit => _ => _
         .Executes(() => Feature)
         .Executes(async () =>
