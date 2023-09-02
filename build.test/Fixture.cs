@@ -110,9 +110,18 @@ internal sealed class CustomFixture : IAsyncDisposable
         this.tempFiles.Add(path);
     }
 
+    public string CreateTempFile()
+    {
+        var path = RootDirectory / $"tmpFile{Guid.NewGuid():N}";
+
+        CreateTempFile(path);
+
+        return path;
+    }
+
     public void CreateTempFile(string path)
     {
-        File.Create(path);
+        using var _ = File.Create(path);
         this.tempFiles.Add(path);
     }
 
@@ -120,9 +129,9 @@ internal sealed class CustomFixture : IAsyncDisposable
         Feature featureName,
         Version version)
     {
-        this.CreateTempDirectory(featureName.GetFeatureRoot(RootDirectory));
+        this.CreateTempDirectory(featureName.GetRoot(RootDirectory));
 
-        var featureConfig = featureName.GetFeatureConfig(RootDirectory);
+        var featureConfig = featureName.GetConfig(RootDirectory);
         var json = $$"""
             {
                 "version": "{{version}}",
@@ -136,7 +145,7 @@ internal sealed class CustomFixture : IAsyncDisposable
 
     public async Task<string?> GetVersion(Feature feature)
     {
-        var featureConfig = feature.GetFeatureConfig(RootDirectory);
+        var featureConfig = feature.GetConfig(RootDirectory);
         using var fileStream = File.OpenRead(featureConfig);
         var document = await JsonDocument.ParseAsync(fileStream);
 
@@ -172,7 +181,7 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add(feature));
     }
 
-    public async Task Commit(
+    public async Task AddAndCommit(
         CommitMessage message,
         string path)
     {
@@ -274,44 +283,5 @@ internal sealed class CustomFixture : IAsyncDisposable
             .ExecuteAsync();
 
         return modifiedFiles;
-    }
-}
-
-public static class FeatureExtenssions
-{
-    public static Tag GetTag(this Feature feature) => new($"feature_{feature}");
-
-    public static AbsolutePath GetFeatureRoot(
-        this Feature feature,
-        AbsolutePath projectRoot) => projectRoot
-            / "features"
-            / "src"
-            / feature;
-
-    public static AbsolutePath GetFeatureConfig(
-        this Feature featureName,
-        AbsolutePath projectRoot)
-        => featureName.GetFeatureRoot(projectRoot)
-            / "devcontainer-feature.json";
-
-    public static string GetRelativePathToConfig(this Feature feature)
-        => Path.Combine("features", "src", feature, "devcontainer-feature.json");
-
-    public static async Task<string?> GetVersion(
-        this Feature feature,
-        AbsolutePath projectRoot)
-    {
-        var featureConfig = feature.GetFeatureConfig(projectRoot);
-        using var fileStream = File.OpenRead(featureConfig);
-        var document = await JsonDocument.ParseAsync(fileStream);
-
-        return document.RootElement.GetProperty("version").GetString();
-    }
-
-    public static void CreateTempFile(
-        this Feature feature,
-        AbsolutePath root)
-    {
-        using var _ = File.Create(feature.GetFeatureRoot(root) / $"tmp_{Guid.NewGuid():N}");
     }
 }
