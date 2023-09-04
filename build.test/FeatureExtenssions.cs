@@ -22,6 +22,12 @@ public static class FeatureExtenssions
 		=> featureName.GetRoot(projectRoot)
 			/ "devcontainer-feature.json";
 
+	public static AbsolutePath GetDocumentation(
+		this Feature featureName,
+		AbsolutePath projectRoot)
+		=> featureName.GetRoot(projectRoot)
+			/ "README.md";
+
 	public static string GetRelativePathToConfig(this Feature feature)
 		=> Path.Combine("features", "src", feature, "devcontainer-feature.json");
 

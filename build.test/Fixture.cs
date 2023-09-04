@@ -177,6 +177,14 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add(feature));
     }
 
+    public async Task RunGenerateDocumentationTarget(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("GenerateDocumentationFeature")
+            .Add("--feature")
+            .Add(feature));
+    }
+
     public async Task RunBuild(Func<ArgumentsBuilder, ArgumentsBuilder> configure)
     {
         await Cli.Wrap("dotnet")

@@ -176,6 +176,19 @@ public sealed class VersioningTests : IAsyncLifetime
             .Be(feature.GetTag(version));
     }
 
+    [Theory, AutoData]
+    public async Task GenerateDocumentation(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.RunGenerateDocumentationTarget(feature);
+
+        var documentation = feature.GetDocumentation(fixture.RootDirectory);
+
+        File.Exists(documentation).Should().BeTrue();
+    }
+
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");
