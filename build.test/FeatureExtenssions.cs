@@ -42,10 +42,14 @@ public static class FeatureExtenssions
 		return document.RootElement.GetProperty("version").GetString();
 	}
 
-	public static void CreateTempFile(
+	public static AbsolutePath CreateTempFile(
 		this Feature feature,
 		AbsolutePath root)
 	{
-		using var _ = File.Create(feature.GetRoot(root) / $"tmp_{Guid.NewGuid():N}");
+		var path = feature.GetRoot(root) / $"tmp_{Guid.NewGuid():N}";
+
+		using var _ = File.Create(path);
+
+		return path;
 	}
 }

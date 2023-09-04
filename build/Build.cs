@@ -46,7 +46,7 @@ public sealed partial class Build : NukeBuild
             await Cli.Wrap("git")
                 .WithArguments(args => args
                     .Add("add")
-                    .Add(PathToFeatureDefinition))
+                    .Add(FeatureRoot))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();
@@ -55,7 +55,7 @@ public sealed partial class Build : NukeBuild
                 .WithArguments(args => args
                     .Add("commit")
                     .Add("--include")
-                    .Add(PathToFeatureDefinition)
+                    .Add(FeatureRoot)
                     .Add("--message")
                     .Add($"Release: feature {Feature} {version}"))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))

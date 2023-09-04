@@ -9,7 +9,9 @@ sealed partial class Build
 
     private RelativePath PathToAdditionalNotes => FeaturesRoot.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "Notes.md";
 
-    private AbsolutePath PathToFeatureDefinition => FeaturesRoot / "src" / Feature / "devcontainer-feature.json";
+    private AbsolutePath PathToFeatureDefinition => FeatureRoot / "devcontainer-feature.json";
+
+    private AbsolutePath FeatureRoot => FeaturesRoot / "src" / Feature;
 
     private RelativePath RelativePathToFeatureDefinition => RootDirectory.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "devcontainer-feature.json";
 

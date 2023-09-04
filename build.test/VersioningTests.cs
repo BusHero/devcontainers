@@ -1,3 +1,5 @@
+using Nuke.Common.IO;
+
 namespace build.test;
 
 public sealed class VersioningTests : IAsyncLifetime
@@ -158,7 +160,23 @@ public sealed class VersioningTests : IAsyncLifetime
 
         modifiedFiles
             .Should()
-            .Equal(feature.GetRelativePathToConfig());
+            .Contain(feature.GetRelativePathToConfig());
+    }
+
+    [Theory, AutoData]
+    public async Task CreateReleaseCommitContainsAllFilesFromFeatureRoot(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        var tempFile = feature.CreateTempFile(fixture.RootDirectory);
+        await fixture.RunCreateReleaseCommitTarget(feature);
+
+        var modifiedFiles = await fixture.GetModifiedFilesLatestCommit();
+
+        modifiedFiles
+            .Should()
+            .Contain(fixture.RootDirectory.GetRelativePathTo(tempFile));
     }
 
     [Theory, AutoData]
