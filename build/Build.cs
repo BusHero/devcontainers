@@ -57,7 +57,7 @@ public sealed partial class Build : NukeBuild
                     .Add("--include")
                     .Add(PathToFeatureDefinition)
                     .Add("--message")
-                    .Add($"chore(version): Release feature/{Feature} {version}"))
+                    .Add($"Release: feature {Feature} {version}"))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();

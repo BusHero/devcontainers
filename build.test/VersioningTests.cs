@@ -143,7 +143,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         expectedMessage
             .Should()
-            .Be($"chore(version): Release feature/{feature} {version}");
+            .Be($"Release: feature {feature} {version}");
     }
 
     [Theory, AutoData]
