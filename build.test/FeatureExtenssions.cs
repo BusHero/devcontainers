@@ -22,8 +22,17 @@ public static class FeatureExtenssions
 		=> featureName.GetRoot(projectRoot)
 			/ "devcontainer-feature.json";
 
+	public static AbsolutePath GetDocumentation(
+		this Feature featureName,
+		AbsolutePath projectRoot)
+		=> featureName.GetRoot(projectRoot)
+			/ "README.md";
+
 	public static string GetRelativePathToConfig(this Feature feature)
 		=> Path.Combine("features", "src", feature, "devcontainer-feature.json");
+
+	public static string GetRelativePathToDocumentation(this Feature feature)
+		=> Path.Combine("features", "src", feature, "README.md");
 
 	public static async Task<string?> GetVersion(
 		this Feature feature,
@@ -36,10 +45,14 @@ public static class FeatureExtenssions
 		return document.RootElement.GetProperty("version").GetString();
 	}
 
-	public static void CreateTempFile(
+	public static AbsolutePath CreateTempFile(
 		this Feature feature,
 		AbsolutePath root)
 	{
-		using var _ = File.Create(feature.GetRoot(root) / $"tmp_{Guid.NewGuid():N}");
+		var path = feature.GetRoot(root) / $"tmp_{Guid.NewGuid():N}";
+
+		using var _ = File.Create(path);
+
+		return path;
 	}
 }

@@ -177,14 +177,38 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add(feature));
     }
 
-    public async Task RunBuild(Func<ArgumentsBuilder, ArgumentsBuilder> configure)
+    public async Task RunGenerateDocumentationTarget(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("GenerateDocumentationFeature")
+            .Add("--feature")
+            .Add(feature));
+    }
+
+    public async Task RunReleaseFeature(Feature feature)
+    {
+        await RunBuild(args => args
+            .Add("ReleaseFeature")
+            .Add("--feature")
+            .Add(feature), false);
+    }
+
+    public async Task RunBuild(
+        Func<ArgumentsBuilder, ArgumentsBuilder> configure,
+        bool skip = true)
     {
         await Cli.Wrap("dotnet")
-            .WithArguments(args => configure(args
+            .WithArguments(args =>
+            {
+                configure(args
                     .Add("run")
                     .Add("--project")
                     .Add("/workspaces/devcontainers/build"))
-                .Add("--no-logo"))
+                .Add("--no-logo");
+
+                if (skip)
+                    args.Add("--skip");
+            })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
@@ -308,5 +332,19 @@ internal sealed class CustomFixture : IAsyncDisposable
             .WithArguments("tag")
             .WithStandardOutputPipe(PipeTarget.ToDelegate(originalTags.Add))
             .ExecuteAsync();
+    }
+
+    public async Task<string> GetGitHash(string latestGitTag)
+    {
+        var hash = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("rev-parse")
+                .Add(latestGitTag))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => hash = x))
+            .ExecuteAsync();
+
+        return hash;
     }
 }

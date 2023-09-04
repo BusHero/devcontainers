@@ -9,7 +9,9 @@ sealed partial class Build
 
     private RelativePath PathToAdditionalNotes => FeaturesRoot.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "Notes.md";
 
-    private AbsolutePath PathToFeatureDefinition => FeaturesRoot / "src" / Feature / "devcontainer-feature.json";
+    private AbsolutePath PathToFeatureDefinition => FeatureRoot / "devcontainer-feature.json";
+
+    private AbsolutePath FeatureRoot => FeaturesRoot / "src" / Feature;
 
     private RelativePath RelativePathToFeatureDefinition => RootDirectory.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "devcontainer-feature.json";
 
@@ -17,6 +19,7 @@ sealed partial class Build
 
     Target GenerateDocumentationFeature => _ => _
         .Requires(() => Feature)
+        .Triggers(CreateVersionChangeCommit)
         .Executes(async () =>
         {
             var feature = await ReadFeatureSpecification(PathToFeatureDefinition);
@@ -65,48 +68,5 @@ sealed partial class Build
         var feature = await JsonSerializer.DeserializeAsync<Feature>(stream, Converter.Settings);
 
         return feature ?? throw new InvalidOperationException("It's not supposed to be null");
-    }
-}
-
-public static class FeatureExtenssions
-{
-    public static List<string>? GetVSCodeExtenssions(this Feature feature)
-    {
-        var customizations = feature.Customizations;
-        if (customizations is null)
-        {
-            return null;
-        }
-
-        if (!customizations.TryGetValue("vscode", out var customization))
-        {
-            return null;
-        }
-
-        if (customization is not JsonElement)
-        {
-            return null;
-        }
-
-        var jsonElement = (JsonElement)customization;
-
-        if (!jsonElement.TryGetProperty("extensions", out var jsonElementExtensions))
-        {
-            return null;
-        }
-
-        if (jsonElementExtensions.ValueKind is not JsonValueKind.Array)
-        {
-            return null;
-        }
-
-        var extensions = jsonElementExtensions
-            .EnumerateArray()
-            .Where(x => x.ValueKind is JsonValueKind.String)
-            .Select(x => x.GetString())
-            .Cast<string>()
-            .ToList();
-
-        return extensions.Count == 0 ? null : extensions;
     }
 }

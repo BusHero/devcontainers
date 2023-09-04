@@ -81,6 +81,7 @@
               "ListTemplatesAndFeatures",
               "PublishFeatures",
               "PublishTemplate",
+              "ReleaseFeature",
               "TestFeature",
               "TestTemplate",
               "Version"
@@ -105,6 +106,7 @@
               "ListTemplatesAndFeatures",
               "PublishFeatures",
               "PublishTemplate",
+              "ReleaseFeature",
               "TestFeature",
               "TestTemplate",
               "Version"

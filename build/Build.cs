@@ -22,6 +22,10 @@ public sealed partial class Build : NukeBuild
         return new Version(version);
     }
 
+    public Target ReleaseFeature => _ => _
+        .Triggers(Version)
+        .Requires(() => Feature);
+
     public Target CreateReleaseTag => _ => _
         .Requires(() => Feature)
         .Executes(async () =>
@@ -38,7 +42,8 @@ public sealed partial class Build : NukeBuild
         });
 
     public Target CreateVersionChangeCommit => _ => _
-        .Executes(() => Feature)
+        .Requires(() => Feature)
+        .Triggers(CreateReleaseTag)
         .Executes(async () =>
         {
             var version = GetFeatureVersion(PathToFeatureDefinition);
@@ -46,7 +51,7 @@ public sealed partial class Build : NukeBuild
             await Cli.Wrap("git")
                 .WithArguments(args => args
                     .Add("add")
-                    .Add(PathToFeatureDefinition))
+                    .Add(FeatureRoot))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();
@@ -55,9 +60,9 @@ public sealed partial class Build : NukeBuild
                 .WithArguments(args => args
                     .Add("commit")
                     .Add("--include")
-                    .Add(PathToFeatureDefinition)
+                    .Add(FeatureRoot)
                     .Add("--message")
-                    .Add($"chore(version): Release feature/{Feature} {version}"))
+                    .Add($"Release: feature {Feature} {version}"))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();
@@ -65,6 +70,7 @@ public sealed partial class Build : NukeBuild
 
     public Target Version => _ => _
         .Requires(() => Feature)
+        .Triggers(GenerateDocumentationFeature)
         .Executes(async () =>
         {
             var json = await File.ReadAllTextAsync(PathToFeatureDefinition);
