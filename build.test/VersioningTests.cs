@@ -35,6 +35,41 @@ public sealed class VersioningTests : IAsyncLifetime
     }
 
     [Theory, AutoData]
+    public async Task NoPriorTagDontIncrementVersion(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+
+        await fixture.RunVersionTarget(feature);
+
+        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+
+        newVersion
+            .Should()
+            .Be(version);
+    }
+
+    [Theory, AutoData]
+    public async Task WrongTagNameAbort(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+
+        await fixture.RunVersionTarget(feature);
+
+        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+
+        newVersion
+            .Should()
+            .Be(version);
+    }
+
+    [Theory, AutoData]
     public async Task TwoCommits_ChoreAndChore_UpdatesChore(
         Feature feature,
         Version version)

@@ -13,14 +13,20 @@ public sealed partial class Build : NukeBuild
 
     [PathExecutable("bash")] private readonly Tool Bash = null!;
 
+    private Version GetFeatureVersion(string pathToFeatureDefinition)
+    {
+        var json = File.ReadAllText(pathToFeatureDefinition);
+        var feature = JsonSerializer.Deserialize<Feature>(json);
+        var version = feature?.Version!;
+
+        return new Version(version);
+    }
+
     public Target CreateReleaseTag => _ => _
         .Requires(() => Feature)
         .Executes(async () =>
         {
-            var json = File.ReadAllText(PathToFeatureDefinition);
-            var feature = JsonSerializer.Deserialize<Feature>(json);
-            var version = feature?.Version!;
-
+            var version = GetFeatureVersion(PathToFeatureDefinition);
             var tag = $"feature_{Feature}_{version}";
             Log.Information("New tag: {tag}", tag);
 
@@ -35,9 +41,7 @@ public sealed partial class Build : NukeBuild
         .Executes(() => Feature)
         .Executes(async () =>
         {
-            var json = File.ReadAllText(PathToFeatureDefinition);
-            var feature = JsonSerializer.Deserialize<Feature>(json);
-            var version = System.Version.Parse(feature?.Version!);
+            var version = GetFeatureVersion(PathToFeatureDefinition);
 
             await Cli.Wrap("git")
                 .WithArguments(args => args
@@ -69,16 +73,18 @@ public sealed partial class Build : NukeBuild
 
             var versionJsonElement = document.Root["version"];
 
-            var version = new System.Version(versionJsonElement!.GetValue<string>());
+            var version = new Version(versionJsonElement!.GetValue<string>());
             Log.Information("old version: {version}", version);
 
             var latestGitTag = await GetLatestTag(Feature);
-
-            var commits = latestGitTag switch
+            if (latestGitTag is null)
             {
-                null => new List<string>(),
-                _ => await GetCommitsTillTag(latestGitTag, RelativeFeatureRoot)
-            };
+                Log.Warning("No previous tag found. Abort the Target");
+                return;
+            }
+
+            var commits = await GetCommitsTillTag(latestGitTag, RelativeFeatureRoot);
+
             if (commits.Any(x => x.StartsWith("feat:")))
             {
                 version = version.IncrementMajor();
@@ -97,7 +103,7 @@ public sealed partial class Build : NukeBuild
 
     private async Task<string?> GetLatestTag(string feature)
     {
-        var tags = new List<string>();
+        var tag = default(string);
 
         await Cli.Wrap("git")
             .WithArguments(args => args
@@ -106,10 +112,11 @@ public sealed partial class Build : NukeBuild
                 .Add("--tags")
                 .Add("--match")
                 .Add($"feature_{feature}*"))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
+            .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
 
-        return tags.FirstOrDefault();
+        return tag;
     }
 
     private async Task<List<string>> GetCommitsTillTag(
