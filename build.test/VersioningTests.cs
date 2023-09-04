@@ -1,3 +1,4 @@
+using FluentAssertions.Execution;
 using Nuke.Common.IO;
 
 namespace build.test;
@@ -205,6 +206,36 @@ public sealed class VersioningTests : IAsyncLifetime
         var documentation = feature.GetDocumentation(fixture.RootDirectory);
 
         File.Exists(documentation).Should().BeTrue();
+    }
+
+    [Theory, AutoData]
+    public async Task Release_UpdateVersion(
+        Feature feature,
+        Version version)
+    {
+        var expectedVersion = version.IncrementMajor();
+        await fixture.AddGitTag(feature.GetTag(version));
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+
+        await fixture.RunReleaseFeature(feature);
+
+        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+        var commitMessage = await fixture.GetLatestCommitMessage();
+        var files = await fixture.GetModifiedFilesLatestCommit();
+        var latestGitTag = await fixture.GetLatestTag(feature);
+        var hashForTag = await fixture.GetGitHash(latestGitTag);
+        var hashForHead = await fixture.GetGitHash("HEAD");
+        using (new AssertionScope())
+        {
+            newVersion.Should().Be(expectedVersion);
+            commitMessage.Should().Be($"Release: feature {feature} {expectedVersion}");
+            files.Should().Contain(
+                feature.GetRelativePathToConfig(),
+                feature.GetRelativePathToDocumentation());
+            latestGitTag.Should().Be($"feature_{feature}_{expectedVersion}");
+            hashForHead.Should().Be(hashForTag);
+        }
     }
 
     public async Task InitializeAsync()

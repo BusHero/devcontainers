@@ -19,6 +19,7 @@ sealed partial class Build
 
     Target GenerateDocumentationFeature => _ => _
         .Requires(() => Feature)
+        .Triggers(CreateVersionChangeCommit)
         .Executes(async () =>
         {
             var feature = await ReadFeatureSpecification(PathToFeatureDefinition);

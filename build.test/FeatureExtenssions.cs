@@ -31,6 +31,9 @@ public static class FeatureExtenssions
 	public static string GetRelativePathToConfig(this Feature feature)
 		=> Path.Combine("features", "src", feature, "devcontainer-feature.json");
 
+	public static string GetRelativePathToDocumentation(this Feature feature)
+		=> Path.Combine("features", "src", feature, "README.md");
+
 	public static async Task<string?> GetVersion(
 		this Feature feature,
 		AbsolutePath projectRoot)
