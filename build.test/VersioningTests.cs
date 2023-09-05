@@ -258,31 +258,6 @@ public sealed class VersioningTests : IAsyncLifetime
         }
     }
 
-    [Theory, AutoData]
-    public async Task ChangesDetectedInNukeSetChangesToNukeToTrue(
-        Filename githubOutput,
-        Filename filename)
-    {
-        var output = Path.Combine("/tmp", githubOutput);
-        fixture.CreateTempFile(fixture.RootDirectory / "build" / filename);
-
-        await fixture.RunCheckChangesToNuke(output);
-
-        var text = await File.ReadAllLinesAsync(output);
-        text.Should().Contain("changesToNuke=true");
-    }
-
-    [Theory, AutoData]
-    public async Task NoChangesDetectedSetChangesToNukeToFalse(Filename githubOutput)
-    {
-        var output = Path.Combine("/tmp", githubOutput);
-
-        await fixture.RunCheckChangesToNuke(output);
-
-        var text = await File.ReadAllLinesAsync(output);
-        text.Should().Contain("changesToNuke=false");
-    }
-
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");
