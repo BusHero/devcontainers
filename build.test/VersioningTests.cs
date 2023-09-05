@@ -1,4 +1,5 @@
 using FluentAssertions.Execution;
+using Microsoft.Build.Construction;
 using Nuke.Common.IO;
 
 namespace build.test;
@@ -181,6 +182,25 @@ public sealed class VersioningTests : IAsyncLifetime
     }
 
     [Theory, AutoData]
+    public async Task ReleaseCommitWasCreatedByTheRightUser(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        var tempFile = feature.CreateTempFile(fixture.RootDirectory);
+        await fixture.RunCreateReleaseCommitTarget(feature);
+
+        var username = await fixture.GetCommitterName();
+        var email = await fixture.GetCommiterEmail();
+
+        using (new AssertionScope())
+        {
+            username.Should().Be("Release Bot");
+            email.Should().Be("noreply@github.com");
+        }
+    }
+
+    [Theory, AutoData]
     public async Task CreateTagForReleaseWithRightName(
         Feature feature,
         Version version)
@@ -236,6 +256,31 @@ public sealed class VersioningTests : IAsyncLifetime
             latestGitTag.Should().Be($"feature_{feature}_{expectedVersion}");
             hashForHead.Should().Be(hashForTag);
         }
+    }
+
+    [Theory, AutoData]
+    public async Task ChangesDetectedInNukeSetChangesToNukeToTrue(
+        Filename githubOutput,
+        Filename filename)
+    {
+        var output = Path.Combine("/tmp", githubOutput);
+        fixture.CreateTempFile(fixture.RootDirectory / "build" / filename);
+
+        await fixture.RunCheckChangesToNuke(output);
+
+        var text = await File.ReadAllLinesAsync(output);
+        text.Should().Contain("changesToNuke=true");
+    }
+
+    [Theory, AutoData]
+    public async Task NoChangesDetectedSetChangesToNukeToFalse(Filename githubOutput)
+    {
+        var output = Path.Combine("/tmp", githubOutput);
+
+        await fixture.RunCheckChangesToNuke(output);
+
+        var text = await File.ReadAllLinesAsync(output);
+        text.Should().Contain("changesToNuke=false");
     }
 
     public async Task InitializeAsync()

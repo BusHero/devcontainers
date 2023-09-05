@@ -73,6 +73,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "CheckChangesToNuke",
               "CreateReleaseTag",
               "CreateVersionChangeCommit",
               "GenerateDocumentationFeature",
@@ -98,6 +99,7 @@
             "type": "string",
             "enum": [
               "BuildTemplate",
+              "CheckChangesToNuke",
               "CreateReleaseTag",
               "CreateVersionChangeCommit",
               "GenerateDocumentationFeature",
