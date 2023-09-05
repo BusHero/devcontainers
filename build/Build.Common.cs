@@ -5,7 +5,7 @@ public partial class Build
 {
 	private Target ListTemplatesAndFeatures => _ => _
 		.Requires(() => GithubOutput)
-		.Triggers(GetFeatures, GetTemplates);
+		.Triggers(GetFeatures, GetTemplates, CheckChangesToNuke);
 
 	private AbsolutePath Scripts => RootDirectory / "scripts";
 }

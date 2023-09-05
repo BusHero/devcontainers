@@ -22,11 +22,18 @@ public sealed partial class Build : NukeBuild
         return new Version(version);
     }
 
-    public Target CheckChangesToNuke => _ => _
+    private Target CheckChangesToNuke => _ => _
         .Requires(() => GithubOutput)
         .Executes(async () =>
         {
-            await OutputToGithub("changesToNuke", "true");
+            var changes = Changes;
+            Log.Information("changes: {changes}", changes);
+
+            if (Changes.Any(x => x.StartsWith("build")))
+            {
+                Log.Information("Changes to nuke build detected");
+                await OutputToGithub("changesToNuke", true);
+            }
         });
 
     public Target ReleaseFeature => _ => _
