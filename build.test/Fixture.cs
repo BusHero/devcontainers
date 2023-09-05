@@ -193,6 +193,14 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add(feature), false);
     }
 
+    public async Task RunCheckChangesToNuke(string output)
+    {
+        await RunBuild(args => args
+            .Add("CheckChangesToNuke")
+            .Add("--GithubOutput")
+            .Add(output));
+    }
+
     public async Task RunBuild(
         Func<ArgumentsBuilder, ArgumentsBuilder> configure,
         bool skip = true)

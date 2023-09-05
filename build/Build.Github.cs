@@ -38,7 +38,7 @@ partial class Build : NukeBuild
 
 	private static string Arguments(params string[] args) => string.Join(" ", args);
 
-	private async Task OutputToGithub(string name, string content)
+	private async Task OutputToGithub(string name, object content)
 	{
 		await File.AppendAllTextAsync(GithubOutput, $"{name}={content}\n");
 	}

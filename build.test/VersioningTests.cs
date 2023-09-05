@@ -1,4 +1,5 @@
 using FluentAssertions.Execution;
+using Microsoft.Build.Construction;
 using Nuke.Common.IO;
 
 namespace build.test;
@@ -255,6 +256,31 @@ public sealed class VersioningTests : IAsyncLifetime
             latestGitTag.Should().Be($"feature_{feature}_{expectedVersion}");
             hashForHead.Should().Be(hashForTag);
         }
+    }
+
+    [Theory, AutoData]
+    public async Task ChangesDetectedInNukeSetChangesToNukeToTrue(
+        Filename githubOutput,
+        Filename filename)
+    {
+        var output = Path.Combine("/tmp", githubOutput);
+        fixture.CreateTempFile(fixture.RootDirectory / "build" / filename);
+
+        await fixture.RunCheckChangesToNuke(output);
+
+        var text = await File.ReadAllLinesAsync(output);
+        text.Should().Contain("changesToNuke=true");
+    }
+
+    [Theory, AutoData]
+    public async Task NoChangesDetectedSetChangesToNukeToFalse(Filename githubOutput)
+    {
+        var output = Path.Combine("/tmp", githubOutput);
+
+        await fixture.RunCheckChangesToNuke(output);
+
+        var text = await File.ReadAllLinesAsync(output);
+        text.Should().Contain("changesToNuke=false");
     }
 
     public async Task InitializeAsync()
