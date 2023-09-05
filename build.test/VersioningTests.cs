@@ -1,5 +1,4 @@
 using FluentAssertions.Execution;
-using Microsoft.Build.Construction;
 using Nuke.Common.IO;
 
 namespace build.test;

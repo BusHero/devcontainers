@@ -203,7 +203,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 configure(args
                     .Add("run")
                     .Add("--project")
-                    .Add("/workspaces/devcontainers/build"))
+                    .Add(RootDirectory / "build"))
                 .Add("--no-logo");
 
                 if (skip)
