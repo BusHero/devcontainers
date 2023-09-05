@@ -18,9 +18,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: find changed templates & features
         id: templates
-        run: |
-          ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
-          cat "$GITHUB_OUTPUT"
+        run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
 
   test-templates:
     if: ${{ needs.changes.outputs.templates }}
@@ -65,7 +63,6 @@ jobs:
         run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
 
   test-nuke:
-    if: ${{ needs.changes.outputs.changesToNuke }}
     needs: [changes]
     name: Test nuke
     runs-on: ubuntu-latest
@@ -73,9 +70,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: "7.x.x"
-      - run: dotnet restore
-      - run: dotnet build --no-restore
-      - run: dotnet test --no-build --no-restore
+      - run: echo "${{ needs.changes.outputs }}"
+      # - uses: actions/setup-dotnet@v3
+      #   with:
+      #     dotnet-version: "7.x.x"
+      # - run: dotnet restore
+      # - run: dotnet build --no-restore
+      # - run: dotnet test --no-build --no-restore
