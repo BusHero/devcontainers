@@ -31,6 +31,7 @@ public sealed partial class Build : NukeBuild
 
             if (Changes.Any(x => x.StartsWith("build")))
             {
+                Log.Information("Changes to nuke build detected");
                 await OutputToGithub("changesToNuke", true);
             }
         });
