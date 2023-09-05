@@ -181,6 +181,25 @@ public sealed class VersioningTests : IAsyncLifetime
     }
 
     [Theory, AutoData]
+    public async Task ReleaseCommitWasCreatedByTheRightUser(
+        Feature feature,
+        Version version)
+    {
+        await fixture.CreateFeatureConfig(feature, version);
+        var tempFile = feature.CreateTempFile(fixture.RootDirectory);
+        await fixture.RunCreateReleaseCommitTarget(feature);
+
+        var username = await fixture.GetCommitterName();
+        var email = await fixture.GetCommiterEmail();
+
+        using (new AssertionScope())
+        {
+            username.Should().Be("Release Bot");
+            email.Should().Be("noreply@github.com");
+        }
+    }
+
+    [Theory, AutoData]
     public async Task CreateTagForReleaseWithRightName(
         Feature feature,
         Version version)

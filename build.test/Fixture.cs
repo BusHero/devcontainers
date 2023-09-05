@@ -347,4 +347,36 @@ internal sealed class CustomFixture : IAsyncDisposable
 
         return hash;
     }
+
+    public async Task<string> GetCommitterName(string commit = "HEAD")
+    {
+        var name = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("show")
+                .Add("-s")
+                .Add("--format=%aN")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => name = x))
+            .ExecuteAsync();
+
+        return name;
+    }
+
+    public async Task<string> GetCommiterEmail(string commit = "HEAD")
+    {
+        var email = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("show")
+                .Add("-s")
+                .Add("--format=%aE")
+                .Add(commit))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => email = x))
+            .ExecuteAsync();
+
+        return email;
+    }
 }
