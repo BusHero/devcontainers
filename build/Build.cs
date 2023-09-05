@@ -26,6 +26,9 @@ public sealed partial class Build : NukeBuild
         .Requires(() => GithubOutput)
         .Executes(async () =>
         {
+            var changes = Changes;
+            Log.Information("changes: {changes}", changes);
+
             if (Changes.Any(x => x.StartsWith("build")))
             {
                 await OutputToGithub("changesToNuke", true);
