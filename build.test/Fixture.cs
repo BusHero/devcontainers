@@ -231,6 +231,13 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(path)
                 .Add("--message")
                 .Add(message))
+            .WithEnvironmentVariables(env =>
+            {
+                env.Set("GIT_COMMITTER_NAME", "Bot");
+                env.Set("GIT_COMMITTER_EMAIL", "noreply@github.com");
+                env.Set("GIT_AUTHOR_NAME", "Bot");
+                env.Set("GIT_AUTHOR_EMAIL", "noreply@github.com");
+            })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }
