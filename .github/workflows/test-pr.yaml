@@ -18,9 +18,9 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: find changed templates & features
         id: templates
-        run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
-      - name: show github outputs
-        run: cat "$GITHUB_OUTPUT"
+        run: |
+          ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
 
   test-templates:
     if: ${{ needs.changes.outputs.templates }}
