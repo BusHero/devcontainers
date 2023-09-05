@@ -23,7 +23,7 @@ jobs:
   test-templates:
     if: ${{ needs.changes.outputs.templates }}
     needs: [changes]
-    name: "Test template: ${{ matrix.template }}"
+    name: Test template ${{ matrix.template }}
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -39,12 +39,12 @@ jobs:
         run: npm install -g @devcontainers/cli
       - name: Run test for '${{ matrix.template }}'
         id: smoke_test
-        run: echo 'Hi man'
+        run: ./build.sh TestTemplate -Template '${{ matrix.template }}'
 
   test-features:
     if: ${{ needs.changes.outputs.features }}
     needs: [changes]
-    name: "Test feature: ${{ matrix.feature }}"
+    name: Test feature ${{ matrix.feature }}
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -61,3 +61,19 @@ jobs:
       - name: Run test for '${{ matrix.feature }}'
         id: smoke_test
         run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
+
+  test-nuke:
+    if: ${{ needs.changes.outputs.changesToNuke }}
+    needs: [changes]
+    name: Test nuke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "7.x.x"
+      - run: dotnet restore
+      - run: dotnet build --no-restore
+      - run: dotnet test --no-build --no-restore
