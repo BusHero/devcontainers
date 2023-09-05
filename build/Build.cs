@@ -63,6 +63,13 @@ public sealed partial class Build : NukeBuild
                     .Add(FeatureRoot)
                     .Add("--message")
                     .Add($"Release: feature {Feature} {version}"))
+                .WithEnvironmentVariables(dict =>
+                {
+                    dict.Set("GIT_COMMITTER_NAME", "Release Bot");
+                    dict.Set("GIT_COMMITTER_EMAIL", "noreply@github.com");
+                    dict.Set("GIT_AUTHOR_NAME", "Release Bot");
+                    dict.Set("GIT_AUTHOR_EMAIL", "noreply@github.com");
+                })
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();
