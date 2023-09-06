@@ -1,5 +1,4 @@
 using FluentAssertions.Execution;
-using Microsoft.Build.Construction;
 using Nuke.Common.IO;
 
 namespace build.test;
@@ -233,6 +232,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Feature feature,
         Version version)
     {
+        await fixture.OverrideOrigin();
         var expectedVersion = version.IncrementMajor();
         await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
@@ -259,28 +259,28 @@ public sealed class VersioningTests : IAsyncLifetime
     }
 
     [Theory, AutoData]
-    public async Task ChangesDetectedInNukeSetChangesToNukeToTrue(
-        Filename githubOutput,
-        Filename filename)
+    public async Task ReleasePushesToOrigin(
+        Feature feature,
+        Version version)
     {
-        var output = Path.Combine("/tmp", githubOutput);
-        fixture.CreateTempFile(fixture.RootDirectory / "build" / filename);
+        await fixture.OverrideOrigin();
+        await fixture.AddGitTag(feature.GetTag(version));
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
 
-        await fixture.RunCheckChangesToNuke(output);
+        await fixture.RunReleaseFeature(feature);
 
-        var text = await File.ReadAllLinesAsync(output);
-        text.Should().Contain("changesToNuke=true");
-    }
+        await fixture.GetLatestCommitMessage();
+        var latestTag = await fixture.GetLatestTag(feature, fixture.GitOriginPath);
+        var latestMessage = await fixture.GetLatestCommitMessage(fixture.GitOriginPath);
+        var expectedMessage = await fixture.GetLatestCommitMessage();
 
-    [Theory, AutoData]
-    public async Task NoChangesDetectedSetChangesToNukeToFalse(Filename githubOutput)
-    {
-        var output = Path.Combine("/tmp", githubOutput);
-
-        await fixture.RunCheckChangesToNuke(output);
-
-        var text = await File.ReadAllLinesAsync(output);
-        text.Should().Contain("changesToNuke=false");
+        using (new AssertionScope())
+        {
+            latestTag.Should().Be(feature.GetTag(version.IncrementMajor()));
+            latestMessage.Should().Be(expectedMessage);
+            latestMessage.Should().NotBeNullOrEmpty();
+        }
     }
 
     public async Task InitializeAsync()

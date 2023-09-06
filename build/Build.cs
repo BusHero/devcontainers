@@ -6,6 +6,7 @@ using CliWrap;
 using Serilog;
 using Nuke.Common.IO;
 using System.Text.Json;
+using Octokit;
 
 public sealed partial class Build : NukeBuild
 {
@@ -42,6 +43,7 @@ public sealed partial class Build : NukeBuild
 
     public Target CreateReleaseTag => _ => _
         .Requires(() => Feature)
+        .Triggers(PushToMain)
         .Executes(async () =>
         {
             var version = GetFeatureVersion(PathToFeatureDefinition);
@@ -54,6 +56,38 @@ public sealed partial class Build : NukeBuild
                     .Add(tag))
                 .ExecuteAsync();
         });
+
+    private Target PushToMain => _ => _
+        .Executes(async () =>
+        {
+            var branch = string.Empty;
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("branch")
+                    .Add("--show-current"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => branch = x))
+                .ExecuteAsync();
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("push")
+                    .Add("--set-upstream")
+                    .Add("origin")
+                    .Add(branch))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .ExecuteAsync();
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("push")
+                    .Add("--tags"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .ExecuteAsync();
+        });
+
+
 
     public Target CreateVersionChangeCommit => _ => _
         .Requires(() => Feature)
