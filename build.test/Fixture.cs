@@ -202,14 +202,6 @@ internal sealed class CustomFixture : IAsyncDisposable
             .Add(feature), false);
     }
 
-    public async Task RunCheckChangesToNuke(string output)
-    {
-        await RunBuild(args => args
-            .Add("CheckChangesToNuke")
-            .Add("--GithubOutput")
-            .Add(output));
-    }
-
     public async Task RunBuild(
         Func<ArgumentsBuilder, ArgumentsBuilder> configure,
         bool skip = true)
@@ -220,7 +212,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 configure(args
                     .Add("run")
                     .Add("--project")
-                    .Add("/workspaces/devcontainers/build"))
+                    .Add(RootDirectory / "build"))
                 .Add("--no-logo");
 
                 if (skip)
@@ -248,6 +240,13 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(path)
                 .Add("--message")
                 .Add(message))
+            .WithEnvironmentVariables(env =>
+            {
+                env.Set("GIT_COMMITTER_NAME", "Bot");
+                env.Set("GIT_COMMITTER_EMAIL", "noreply@github.com");
+                env.Set("GIT_AUTHOR_NAME", "Bot");
+                env.Set("GIT_AUTHOR_EMAIL", "noreply@github.com");
+            })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
     }

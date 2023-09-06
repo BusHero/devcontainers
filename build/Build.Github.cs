@@ -5,9 +5,9 @@ using Nuke.Common.Tooling;
 
 partial class Build : NukeBuild
 {
-	private const string MainBranch = "main";
-	private const string Remote = "origin";
-	private const string RemoteMainBranch = $"remotes/{Remote}/{MainBranch}";
+	private const string MAIN_BRANCH = "main";
+	private const string REMOTE = "origin";
+	private const string REMOTE_MAIN_BRANCH = $"remotes/{REMOTE}/{MAIN_BRANCH}";
 
 	[PathExecutable("git")] readonly Tool Git = null!;
 
@@ -24,7 +24,7 @@ partial class Build : NukeBuild
 	{
 		var changedFiles = Git(Arguments(
 			"diff",
-			RemoteMainBranch,
+			REMOTE_MAIN_BRANCH,
 			"--name-only"));
 		var untrackedFiles = Git(Arguments(
 			"ls-files",

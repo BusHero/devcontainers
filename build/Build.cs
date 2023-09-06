@@ -23,7 +23,7 @@ public sealed partial class Build : NukeBuild
         return new Version(version);
     }
 
-    public Target CheckChangesToNuke => _ => _
+    private Target CheckChangesToNuke => _ => _
         .Requires(() => GithubOutput)
         .Executes(async () =>
         {
@@ -34,6 +34,7 @@ public sealed partial class Build : NukeBuild
             else
             {
                 await OutputToGithub("changesToNuke", "false");
+
             }
         });
 

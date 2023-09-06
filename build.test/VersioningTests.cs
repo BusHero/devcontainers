@@ -282,7 +282,7 @@ public sealed class VersioningTests : IAsyncLifetime
             latestMessage.Should().NotBeNullOrEmpty();
         }
     }
-
+    
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");
