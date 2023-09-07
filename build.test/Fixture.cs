@@ -47,11 +47,19 @@ internal sealed class CustomFixture : IAsyncDisposable
             RemoveTempFiles(tempFiles);
             await RestoreFiles(tempFiles);
         }
+
+        if (originalOrigin is not null)
+        {
+            await ResetOrigin(originalOrigin);
+        }
     }
 
     private async Task RestoreFiles(IReadOnlyCollection<string> files)
     {
-        if (files.Count == 0)
+        var repoFiles = files
+            .Where(x => x.StartsWith(RootDirectory))
+            .ToList();
+        if (repoFiles.Count == 0)
         {
             return;
         }
@@ -61,8 +69,9 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("restore")
                 .Add("--staged")
                 .Add("--progress")
-                .Add(files))
+                .Add(repoFiles))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
     }
@@ -279,24 +288,35 @@ internal sealed class CustomFixture : IAsyncDisposable
             .ExecuteAsync();
     }
 
-    public async Task<string> GetLatestCommitMessage()
+    public async Task<string> GetLatestCommitMessage(
+        string path = null!)
     {
         var commitMessage = string.Empty;
 
         await Cli.Wrap("git")
             .WithArguments(args => args
                 .Add("rev-list")
-                .Add("HEAD")
                 .Add("--pretty=%s")
                 .Add("--no-commit-header")
-                .Add("-n1"))
+                .Add("-n1")
+                .Add("HEAD"))
+            .WithEnvironmentVariables(env =>
+            {
+                if (path is not null)
+                {
+                    env.Set("GIT_DIR", path);
+                }
+            })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitMessage = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
 
         return commitMessage;
     }
 
-    public async Task<string> GetLatestTag(string feature)
+    public async Task<string> GetLatestTag(
+        string feature,
+        string path = null!)
     {
         var tag = string.Empty;
 
@@ -307,7 +327,15 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--tags")
                 .Add("--match")
                 .Add($"feature_{feature}*"))
+            .WithEnvironmentVariables(env =>
+            {
+                if (path is not null)
+                {
+                    env.Set("GIT_DIR", path);
+                }
+            })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .ExecuteAsync();
 
         return tag;
@@ -385,5 +413,79 @@ internal sealed class CustomFixture : IAsyncDisposable
             .ExecuteAsync();
 
         return email;
+    }
+
+    private const string REMOTE = "origin";
+
+    private string? originalOrigin = default;
+
+    public string GitOriginPath { get; } = Path.Combine("/tmp", $"repo_{Guid.NewGuid():N}");
+
+    public async Task OverrideOrigin()
+    {
+        CreateTempDirectory(GitOriginPath);
+
+        originalOrigin = await GetRemoteUrl(REMOTE);
+
+        await SetRemoteUrl(REMOTE, GitOriginPath);
+
+        await CloneBareRepo(GitOriginPath);
+    }
+
+
+    public async Task ResetOrigin(string? url)
+    {
+        if (url is null)
+        {
+            return;
+        }
+
+        await SetRemoteUrl(REMOTE, url);
+    }
+
+    private async Task CloneBareRepo(string path)
+    {
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("clone")
+                .Add("--bare")
+                .Add("--no-hardlinks")
+                .Add("--single-branch")
+                .Add(RootDirectory)
+                .Add(path))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .ExecuteAsync();
+    }
+
+    private async Task<string> GetRemoteUrl(string remote)
+    {
+        var remoteUrl = string.Empty;
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("remote")
+                .Add("get-url")
+                .Add(remote))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => remoteUrl = x))
+            .ExecuteAsync();
+
+        return remoteUrl;
+    }
+
+    private async Task SetRemoteUrl(
+        string remote,
+        string url)
+    {
+        ArgumentNullException.ThrowIfNull(remote);
+        ArgumentNullException.ThrowIfNull(url);
+
+        await Cli.Wrap("git")
+            .WithArguments(args => args
+                .Add("remote")
+                .Add("set-url")
+                .Add(remote)
+                .Add(url))
+            .ExecuteAsync();
     }
 }

@@ -26,13 +26,14 @@ public sealed partial class Build : NukeBuild
         .Requires(() => GithubOutput)
         .Executes(async () =>
         {
-            var changes = Changes;
-            Log.Information("changes: {changes}", changes);
-
             if (Changes.Any(x => x.StartsWith("build")))
             {
-                Log.Information("Changes to nuke build detected");
-                await OutputToGithub("changesToNuke", true);
+                await OutputToGithub("changesToNuke", "true");
+            }
+            else
+            {
+                await OutputToGithub("changesToNuke", "false");
+
             }
         });
 
@@ -42,6 +43,7 @@ public sealed partial class Build : NukeBuild
 
     public Target CreateReleaseTag => _ => _
         .Requires(() => Feature)
+        .Triggers(PushToMain)
         .Executes(async () =>
         {
             var version = GetFeatureVersion(PathToFeatureDefinition);
@@ -54,6 +56,39 @@ public sealed partial class Build : NukeBuild
                     .Add(tag))
                 .ExecuteAsync();
         });
+
+    private Target PushToMain => _ => _
+        .Executes(async () =>
+        {
+            var branch = string.Empty;
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("branch")
+                    .Add("--show-current"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => branch = x))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .ExecuteAsync();
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("push")
+                    .Add("--set-upstream")
+                    .Add("origin")
+                    .Add(branch))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .ExecuteAsync();
+
+            await Cli.Wrap("git")
+                .WithArguments(args => args
+                    .Add("push")
+                    .Add("--tags"))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .ExecuteAsync();
+        });
+
+
 
     public Target CreateVersionChangeCommit => _ => _
         .Requires(() => Feature)

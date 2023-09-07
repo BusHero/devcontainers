@@ -232,6 +232,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Feature feature,
         Version version)
     {
+        await fixture.OverrideOrigin();
         var expectedVersion = version.IncrementMajor();
         await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
@@ -257,6 +258,31 @@ public sealed class VersioningTests : IAsyncLifetime
         }
     }
 
+    [Theory, AutoData]
+    public async Task ReleasePushesToOrigin(
+        Feature feature,
+        Version version)
+    {
+        await fixture.OverrideOrigin();
+        await fixture.AddGitTag(feature.GetTag(version));
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+
+        await fixture.RunReleaseFeature(feature);
+
+        await fixture.GetLatestCommitMessage();
+        var latestTag = await fixture.GetLatestTag(feature, fixture.GitOriginPath);
+        var latestMessage = await fixture.GetLatestCommitMessage(fixture.GitOriginPath);
+        var expectedMessage = await fixture.GetLatestCommitMessage();
+
+        using (new AssertionScope())
+        {
+            latestTag.Should().Be(feature.GetTag(version.IncrementMajor()));
+            latestMessage.Should().Be(expectedMessage);
+            latestMessage.Should().NotBeNullOrEmpty();
+        }
+    }
+    
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");
