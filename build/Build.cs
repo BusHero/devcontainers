@@ -67,6 +67,7 @@ public sealed partial class Build : NukeBuild
                     .Add("branch")
                     .Add("--show-current"))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => branch = x))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
                 .ExecuteAsync();
 
             await Cli.Wrap("git")
