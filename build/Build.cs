@@ -6,7 +6,6 @@ using CliWrap;
 using Serilog;
 using Nuke.Common.IO;
 using System.Text.Json;
-using Octokit;
 
 public sealed partial class Build : NukeBuild
 {
