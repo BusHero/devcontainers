@@ -259,6 +259,34 @@ public sealed class VersioningTests : IAsyncLifetime
     }
 
     [Theory, AutoData]
+    public async Task Release_NoPriorVersionWorksAsExpected(
+        Feature feature,
+        Version version)
+    {
+        await fixture.OverrideOrigin();
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+
+        await fixture.RunReleaseFeature(feature);
+
+        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+        var commitMessage = await fixture.GetLatestCommitMessage();
+        var files = await fixture.GetModifiedFilesLatestCommit();
+        var latestGitTag = await fixture.GetLatestTag(feature);
+        var hashForTag = await fixture.GetGitHash(latestGitTag);
+        var hashForHead = await fixture.GetGitHash("HEAD");
+        using (new AssertionScope())
+        {
+            newVersion.Should().Be(version);
+            commitMessage.Should().Be($"Release: feature {feature} {version}");
+            files.Should().Contain(
+                feature.GetRelativePathToDocumentation());
+            latestGitTag.Should().Be($"feature_{feature}_{version}");
+            hashForHead.Should().Be(hashForTag);
+        }
+    }
+
+    [Theory, AutoData]
     public async Task ReleasePushesToOrigin(
         Feature feature,
         Version version)
