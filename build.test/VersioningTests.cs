@@ -277,7 +277,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         using (new AssertionScope())
         {
-            latestTag.Should().Be(feature.GetTag(version.IncrementMajor()));
+            latestTag.Should().Be(feature.GetTag(version.IncrementMinor()));
             latestMessage.Should().Be(expectedMessage);
             latestMessage.Should().NotBeNullOrEmpty();
         }
