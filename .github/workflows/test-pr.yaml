@@ -24,10 +24,6 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - run: |
-          git branch --show-current
-          git branch
-          ls -la
       - name: find changed templates & features
         id: changed_files
         run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
@@ -107,6 +103,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
+      - run: git switch -c test-branch
       - run: dotnet restore
       - run: dotnet build --no-restore
       - run: dotnet test --no-build --no-restore
