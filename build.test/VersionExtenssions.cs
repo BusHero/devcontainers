@@ -14,4 +14,9 @@ public static class VersionExtenssions
 		Minor = version.Minor + 1,
 		Build = 0
 	};
+
+	public static Version IncrementBuild(this Version version) => version with
+	{
+		Build = version.Build + 1
+	};
 }

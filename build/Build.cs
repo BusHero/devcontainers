@@ -88,8 +88,6 @@ public sealed partial class Build : NukeBuild
                 .ExecuteAsync();
         });
 
-
-
     public Target CreateVersionChangeCommit => _ => _
         .Requires(() => Feature)
         .Triggers(CreateReleaseTag)
@@ -149,11 +147,11 @@ public sealed partial class Build : NukeBuild
 
             if (commits.Any(x => x.StartsWith("feat:")))
             {
-                version = version.IncrementMajor();
+                version = version.IncrementMinor();
             }
             else
             {
-                version = version.IncrementMinor();
+                version = version.IncrementBuild();
             }
 
             document["version"] = version.ToString();

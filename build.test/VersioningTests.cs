@@ -34,7 +34,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         newVersion
             .Should()
-            .Be(version.IncrementMajor());
+            .Be(version.IncrementMinor());
     }
 
     [Theory, AutoData]
@@ -89,7 +89,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         newVersion
             .Should()
-            .Be(version.IncrementMinor());
+            .Be(version.IncrementBuild());
     }
 
     [Theory, AutoData]
@@ -111,7 +111,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         newVersion
             .Should()
-            .Be(version.IncrementMajor());
+            .Be(version.IncrementMinor());
     }
 
     [Theory, AutoData]
@@ -131,7 +131,7 @@ public sealed class VersioningTests : IAsyncLifetime
 
         newVersion
             .Should()
-            .Be(version.IncrementMinor());
+            .Be(version.IncrementBuild());
     }
 
     [Theory, AutoData]
@@ -233,7 +233,7 @@ public sealed class VersioningTests : IAsyncLifetime
         Version version)
     {
         await fixture.OverrideOrigin();
-        var expectedVersion = version.IncrementMajor();
+        var expectedVersion = version.IncrementMinor();
         await fixture.AddGitTag(feature.GetTag(version));
         await fixture.CreateFeatureConfig(feature, version);
         await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
@@ -282,7 +282,7 @@ public sealed class VersioningTests : IAsyncLifetime
             latestMessage.Should().NotBeNullOrEmpty();
         }
     }
-    
+
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");
