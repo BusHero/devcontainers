@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - run: git switch main
+      # - run: git switch main
       - name: find changed templates & features
         id: changed_files
         run: |
