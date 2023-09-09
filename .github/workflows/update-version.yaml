@@ -6,6 +6,8 @@ jobs:
   changes:
     name: features
     runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.changed_files.outputs.features }}
     steps:
       - uses: actions/checkout@v3
         name: pull branch
@@ -18,3 +20,29 @@ jobs:
         run: |
           ls -la features/src
           ./build.sh GetFeatures -All -GithubOutput "$GITHUB_OUTPUT"
+
+  release-feature:
+    if: ${{ needs.changes.outputs.features }}
+    needs: [changes]
+    name: Test feature ${{ matrix.feature }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        feature: ${{ fromJSON(needs.changes.outputs.features) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: "Cache: .nuke/temp, ~/.nuget/packages"
+        uses: actions/cache@v3
+        with:
+          path: |
+            .nuke/temp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Run test for '${{ matrix.feature }}'
+        id: smoke_test
+        run: ./build.sh ReleaseFeature -Feature '${{ matrix.feature }}'
