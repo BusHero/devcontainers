@@ -311,6 +311,31 @@ public sealed class VersioningTests : IAsyncLifetime
         }
     }
 
+    [Theory, AutoData]
+    public async Task NoUpdateDontUpdateVersion(
+        Feature feature,
+        Version version)
+    {
+        var commitMessage = CommitMessage.New("feat");
+        await fixture.CreateFeatureConfig(feature, version);
+        await fixture.AddAndCommit(commitMessage, feature.GetRoot(fixture.RootDirectory));
+        await fixture.AddGitTag(feature.GetTag(version));
+        await fixture.OverrideOrigin();
+
+        await fixture.RunReleaseFeature(feature);
+
+        var latestCommitMessage = await fixture.GetLatestCommitMessage();
+        var latestTag = await fixture.GetLatestTag(feature, fixture.GitOriginPath);
+        var latestMessage = await fixture.GetLatestCommitMessage(fixture.GitOriginPath);
+
+        using (new AssertionScope())
+        {
+            latestTag.Should().Be(feature.GetTag(version));
+            latestCommitMessage.Should().Be(commitMessage);
+            latestMessage.Should().Be(commitMessage);
+        }
+    }
+
     public async Task InitializeAsync()
     {
         await fixture.SaveCommit("HEAD");

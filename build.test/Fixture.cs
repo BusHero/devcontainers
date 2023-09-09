@@ -325,6 +325,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("describe")
                 .Add("--abbrev=0")
                 .Add("--tags")
+                .Add("--always")
                 .Add("--match")
                 .Add($"feature_{feature}*"))
             .WithEnvironmentVariables(env =>
