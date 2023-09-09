@@ -15,4 +15,4 @@ jobs:
       - run: git switch main
       - name: find changed templates & features
         id: changed_files
-        run: ./build.sh --target GetFeatures --All
+        run: ./build.sh GetFeatures -All -GithubOutput "$GITHUB_OUTPUT"
