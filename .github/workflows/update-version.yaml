@@ -15,4 +15,6 @@ jobs:
       - run: git switch main
       - name: find changed templates & features
         id: changed_files
-        run: ./build.sh GetFeatures -All -GithubOutput "$GITHUB_OUTPUT"
+        run: |
+          ls -la features/src
+          ./build.sh GetFeatures -All -GithubOutput "$GITHUB_OUTPUT"
