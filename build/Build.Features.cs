@@ -75,7 +75,7 @@ sealed partial class Build
 			var features = Directory
 				.GetDirectories(FeaturesRoot / "src")
 				.Select(x => RootDirectory.GetRelativePathTo(x))
-				.Where(feature => All || Changes.Any(change => change.StartsWith(feature)))
+				// .Where(feature => All || Changes.Any(change => change.StartsWith(feature)))
 				.Select(x => x.ToString())
 				.Select(Path.GetFileName)
 				.ToList();
