@@ -6,6 +6,9 @@
     "build": {
       "type": "object",
       "properties": {
+        "All": {
+          "type": "boolean"
+        },
         "Continue": {
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
