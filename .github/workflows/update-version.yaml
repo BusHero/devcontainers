@@ -11,6 +11,11 @@ jobs:
       features: ${{ steps.changed_files.outputs.features }}
       changesToNuke: ${{ steps.changed_files.outputs.changesToNuke }}
     steps:
+      - uses: actions/checkout@v3
+        name: pull branch
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: find changed templates & features
         id: changed_files
         run: ls -la
