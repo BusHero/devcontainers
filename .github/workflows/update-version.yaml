@@ -7,15 +7,33 @@ jobs:
     name: features
     runs-on: ubuntu-latest
     outputs:
-      templates: ${{ steps.changed_files.outputs.templates }}
       features: ${{ steps.changed_files.outputs.features }}
-      changesToNuke: ${{ steps.changed_files.outputs.changesToNuke }}
     steps:
       - uses: actions/checkout@v3
         name: pull branch
         with:
           fetch-depth: 0
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+      # - run: git switch main
+      - name: find changed templates & features
+        id: changed_files
+        run: |
+          ls -la features/src
+          ./build.sh GetFeatures -All -GithubOutput "$GITHUB_OUTPUT"
+
+  release-feature:
+    if: ${{ needs.changes.outputs.features }}
+    needs: [changes]
+    name: Test feature ${{ matrix.feature }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        feature: ${{ fromJSON(needs.changes.outputs.features) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: "Cache: .nuke/temp, ~/.nuget/packages"
         uses: actions/cache@v3
         with:
@@ -23,6 +41,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - name: find changed templates & features
-        id: changed_files
-        run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Run test for '${{ matrix.feature }}'
+        id: smoke_test
+        run: ./build.sh ReleaseFeature -Feature '${{ matrix.feature }}'
