@@ -72,6 +72,9 @@ sealed partial class Build
 		.Requires(() => GithubOutput)
 		.Executes(async () =>
 		{
+			Log.Information("Root: {root}", FeaturesRoot / "src");
+			Log.Information("Files: {files}", Directory.GetFiles(FeaturesRoot / "src"));
+			Log.Information("Files: {files}", Directory.GetDirectories(FeaturesRoot / "src"));
 			var features = Directory
 				.GetDirectories(FeaturesRoot / "src")
 				// .Select(x => RootDirectory.GetRelativePathTo(x))
