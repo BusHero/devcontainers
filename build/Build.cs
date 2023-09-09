@@ -11,6 +11,8 @@ public sealed partial class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Version);
 
+    private bool ShouldUpdateVersion = true;
+
     [PathExecutable("bash")] private readonly Tool Bash = null!;
 
     private Version GetFeatureVersion(string pathToFeatureDefinition)
@@ -44,6 +46,7 @@ public sealed partial class Build : NukeBuild
     public Target CreateReleaseTag => _ => _
         .Requires(() => Feature)
         .Triggers(PushToMain)
+        .OnlyWhenDynamic(() => ShouldUpdateVersion)
         .Executes(async () =>
         {
             var version = GetFeatureVersion(PathToFeatureDefinition);
@@ -54,10 +57,13 @@ public sealed partial class Build : NukeBuild
                 .WithArguments(args => args
                     .Add("tag")
                     .Add(tag))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{msg}", x)))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{msg}", x)))
                 .ExecuteAsync();
         });
 
     private Target PushToMain => _ => _
+        .OnlyWhenDynamic(() => ShouldUpdateVersion)
         .Executes(async () =>
         {
             var branch = string.Empty;
@@ -91,6 +97,7 @@ public sealed partial class Build : NukeBuild
     public Target CreateVersionChangeCommit => _ => _
         .Requires(() => Feature)
         .Triggers(CreateReleaseTag)
+        .OnlyWhenDynamic(() => ShouldUpdateVersion)
         .Executes(async () =>
         {
             var version = GetFeatureVersion(PathToFeatureDefinition);
@@ -144,6 +151,12 @@ public sealed partial class Build : NukeBuild
             }
 
             var commits = await GetCommitsTillTag(latestGitTag, RelativeFeatureRoot);
+            if (commits is { Count: 0 })
+            {
+                ShouldUpdateVersion = false;
+                return;
+            }
+
 
             if (commits.Any(x => x.StartsWith("feat:")))
             {
