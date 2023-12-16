@@ -16,10 +16,7 @@
 		}
 	},
 	"installsAfter": [
-		"ghcr.io/devcontainers/features/dotnet",
-		"dotnet",
 		"ghcr.io/bushero/devcontainers/features/dotnet",
-		"bash",
 		"ghcr.io/bushero/devcontainers/features/bash"
 	]
 }
