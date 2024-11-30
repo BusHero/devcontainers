@@ -4,7 +4,7 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/dotnet:1.1.1: {}
+    ghcr.io/bushero/devcontainers/features/dotnet:1.2.0: {}
 }
 ```
 
