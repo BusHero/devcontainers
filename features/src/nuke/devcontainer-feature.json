@@ -1,1 +1,22 @@
-{"$schema":"https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json","id":"nuke","description":"Add support for nuke build","version":"1.5.0","name":"nuke build","containerEnv":{"PATH":"/root/.dotnet/tools:${PATH}","DOTNET_NOLOGO":"1"},"customizations":{"vscode":{"extensions":["nuke.support"]}},"installsAfter":["ghcr.io/bushero/devcontainers/features/dotnet","ghcr.io/bushero/devcontainers/features/bash"]}
+{
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+    "id": "nuke",
+    "description": "Add support for nuke build",
+    "version": "1.5.0",
+    "name": "nuke build",
+    "containerEnv": {
+        "PATH": "/root/.dotnet/tools:${PATH}",
+        "DOTNET_NOLOGO": "1"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "nuke.support"
+            ]
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/bushero/devcontainers/features/dotnet",
+        "ghcr.io/bushero/devcontainers/features/bash"
+    ]
+}

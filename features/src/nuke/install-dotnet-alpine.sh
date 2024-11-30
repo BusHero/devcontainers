@@ -1,5 +1,6 @@
 #!/bin/sh
+set -e
 
 apk update
 apk upgrade
-apk add dotnet7-sdk
+apk add dotnet8-sdk

@@ -37,5 +37,6 @@
 	"containerEnv": {
 		"texlive_bin": "/opt/texlive/texdir/bin",
 		"PATH": "${texlive_bin}/default:${PATH}"
+		""
 	}
 }

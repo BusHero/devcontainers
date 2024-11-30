@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 error=0
 
 mkdir /tmp/lualatex

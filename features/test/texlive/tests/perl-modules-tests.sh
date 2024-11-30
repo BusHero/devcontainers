@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 errors=0
 modules='File::HomeDir
  Log::Dispatch::File

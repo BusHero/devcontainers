@@ -2,6 +2,8 @@ using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tooling;
+using Serilog;
+using System.Security.Cryptography.X509Certificates;
 
 partial class Build : NukeBuild
 {
@@ -30,6 +32,15 @@ partial class Build : NukeBuild
 			"ls-files",
 			"--exclude-standard",
 			"--others"));
+
+		foreach (var file in changedFiles)
+		{
+			Log.Information("Changed - {file}", file.Text);
+		}
+		foreach (var file in untrackedFiles)
+		{
+			Log.Information("Changed - {file}", file.Text);
+		}
 
 		return changedFiles
 			.Concat(untrackedFiles)

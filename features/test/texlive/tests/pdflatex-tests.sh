@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 error=0
 
 mkdir /tmp/pdflatex
