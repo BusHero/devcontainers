@@ -1,1 +1,17 @@
-{"$schema":"https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json","id":"dotnet","version":"1.1.1","name":"dotnet","customizations":{"vscode":{"extensions":["ms-dotnettools.csharp"]}},"containerEnv":{"PATH":"/root/.dotnet/tools:${PATH}"}}
+{
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+    "id": "dotnet",
+    "version": "1.1.1",
+    "name": "dotnet",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp"
+            ]
+        }
+    },
+    "containerEnv": {
+        "PATH": "/root/.dotnet/tools:${PATH}",
+        "DOTNET_CLI_TELEMETRY_OPTOUT": "1"
+    }
+}

@@ -1,0 +1,9 @@
+{
+	"test_dotnet": {
+		"image": "alpine:latest",
+		"features": {
+			"bash": {},
+			"dotnet": {}
+		}
+	}
+}
