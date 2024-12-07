@@ -33,15 +33,6 @@ partial class Build : NukeBuild
 			"--exclude-standard",
 			"--others"));
 
-		foreach (var file in changedFiles)
-		{
-			Log.Information("Changed - {file}", file.Text);
-		}
-		foreach (var file in untrackedFiles)
-		{
-			Log.Information("Changed - {file}", file.Text);
-		}
-
 		return changedFiles
 			.Concat(untrackedFiles)
 			.Select(x => x.Text);

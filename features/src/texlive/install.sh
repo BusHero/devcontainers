@@ -15,10 +15,11 @@ apk add \
   perl-dev \
   bash
 
-cpanm Log::Dispatch::File
-cpanm File::HomeDir
-cpanm Unicode::GCString
-cpanm YAML::Tiny
+cpanm Module::Pluggable@5.2
+cpanm Log::Dispatch::File@2.71
+cpanm File::HomeDir@1.006
+cpanm http://www.cpan.org/authors/id/N/NE/NEZUMI/Unicode-LineBreak-2019.001.tar.gz
+cpanm YAML::Tiny@1.74
 
 TEXLIVE_ARCH="$(uname -m)-linuxmusl"
 mkdir -p ${texlive_bin}
