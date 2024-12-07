@@ -4,7 +4,7 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/bash:1.0.0: {}
+    ghcr.io/bushero/devcontainers/features/bash:1.0.1: {}
 }
 ```
 
