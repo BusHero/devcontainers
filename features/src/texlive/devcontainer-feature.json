@@ -1,1 +1,41 @@
-{"$schema":"https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json","id":"texlive","version":"3.2.0","name":"texlive","customizations":{"vscode":{"extensions":["james-yu.latex-workshop"]}},"options":{"scheme":{"type":"string","description":"TeX packages to be installed","default":"scheme-basic","proposals":["scheme-basic","scheme-bookpub","scheme-context","scheme-full","scheme-gust","scheme-infraonly","scheme-medium","scheme-minimal","scheme-small","scheme-tetex"]},"packages":{"type":"string","description":"TeX packages to be installed","default":""}},"containerEnv":{"texlive_bin":"/opt/texlive/texdir/bin","PATH":"${texlive_bin}/default:${PATH}"}}
+{
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+	"id": "texlive",
+	"version": "3.1.0",
+	"name": "texlive",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"james-yu.latex-workshop"
+			]
+		}
+	},
+	"options": {
+		"scheme": {
+			"type": "string",
+			"description": "TeX packages to be installed",
+			"default": "scheme-basic",
+			"proposals": [
+				"scheme-basic",
+				"scheme-bookpub",
+				"scheme-context",
+				"scheme-full",
+				"scheme-gust",
+				"scheme-infraonly",
+				"scheme-medium",
+				"scheme-minimal",
+				"scheme-small",
+				"scheme-tetex"
+			]
+		},
+		"packages": {
+			"type": "string",
+			"description": "TeX packages to be installed",
+			"default": ""
+		}
+	},
+	"containerEnv": {
+		"texlive_bin": "/opt/texlive/texdir/bin",
+		"PATH": "${texlive_bin}/default:${PATH}"
+	}
+}

@@ -4,7 +4,7 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/texlive:3.2.0: {}
+    ghcr.io/bushero/devcontainers/features/texlive:3.1.0: {}
 }
 ```
 

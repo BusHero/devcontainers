@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 ACTUALSCHEME=`grep selected_scheme /opt/texlive/texdir/tlpkg/texlive.profile`
 
