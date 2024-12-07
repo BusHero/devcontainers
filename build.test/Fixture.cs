@@ -3,14 +3,15 @@ using CliWrap;
 using CliWrap.Builders;
 using Nuke.Common;
 using Nuke.Common.IO;
+using Xunit.Abstractions;
 
 namespace build.test;
 
-internal sealed class CustomFixture : IAsyncDisposable
+internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
 {
-    private readonly List<string> tempFiles = new();
+    private readonly List<string> _tempFiles = [];
 
-    private string? commitToRestore;
+    private string? _commitToRestore;
 
     public async Task SaveCommit(string commit)
     {
@@ -18,7 +19,8 @@ internal sealed class CustomFixture : IAsyncDisposable
             .WithArguments(args => args
                 .Add("rev-parse")
                 .Add(commit))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitToRestore = x))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => _commitToRestore = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -39,18 +41,18 @@ internal sealed class CustomFixture : IAsyncDisposable
 
         if (!KeepCommits)
         {
-            await RevertCommits(commitToRestore);
+            await RevertCommits(_commitToRestore);
         }
 
         if (!KeepFiles)
         {
-            RemoveTempFiles(tempFiles);
-            await RestoreFiles(tempFiles);
+            RemoveTempFiles(_tempFiles);
+            await RestoreFiles(_tempFiles);
         }
 
-        if (originalOrigin is not null)
+        if (_originalOrigin is not null)
         {
-            await ResetOrigin(originalOrigin);
+            await ResetOrigin(_originalOrigin);
         }
     }
 
@@ -71,7 +73,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--progress")
                 .Add(repoFiles))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
     }
@@ -90,6 +92,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--soft")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -116,7 +119,7 @@ internal sealed class CustomFixture : IAsyncDisposable
     public void CreateTempDirectory(string path)
     {
         Directory.CreateDirectory(path);
-        this.tempFiles.Add(path);
+        this._tempFiles.Add(path);
     }
 
     public string CreateTempFile()
@@ -131,7 +134,7 @@ internal sealed class CustomFixture : IAsyncDisposable
     public void CreateTempFile(string path)
     {
         using var _ = File.Create(path);
-        this.tempFiles.Add(path);
+        this._tempFiles.Add(path);
     }
 
     public async Task CreateFeatureConfig(
@@ -219,6 +222,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                     args.Add("--skip");
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -231,6 +235,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("add")
                 .Add(path))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         await Cli.Wrap("git")
@@ -248,6 +253,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 env.Set("GIT_AUTHOR_EMAIL", "noreply@github.com");
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -261,6 +267,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(tag)
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -271,9 +278,10 @@ internal sealed class CustomFixture : IAsyncDisposable
         await Cli.Wrap("git")
             .WithArguments("tag")
             .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
-        var tagsToDelete = tags.Except(originalTags).ToList();
+        var tagsToDelete = tags.Except(_originalTags).ToList();
         if (tagsToDelete.Count == 0)
         {
             return;
@@ -285,6 +293,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--delete")
                 .Add(tagsToDelete))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -308,7 +317,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 }
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitMessage = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return commitMessage;
@@ -336,7 +345,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 }
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return tag;
@@ -355,18 +364,20 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("-r")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(modifiedFiles.Add))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return modifiedFiles;
     }
 
-    private readonly List<string> originalTags = new();
+    private readonly List<string> _originalTags = [];
 
     internal async Task SaveTags()
     {
         await Cli.Wrap("git")
             .WithArguments("tag")
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(originalTags.Add))
+            .WithStandardOutputPipe(PipeTarget.ToDelegate(_originalTags.Add))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -379,6 +390,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("rev-parse")
                 .Add(latestGitTag))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => hash = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return hash;
@@ -395,6 +407,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--format=%aN")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => name = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return name;
@@ -411,14 +424,15 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("--format=%aE")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => email = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return email;
     }
 
-    private const string REMOTE = "origin";
+    private const string Remote = "origin";
 
-    private string? originalOrigin = default;
+    private string? _originalOrigin = default;
 
     public string GitOriginPath { get; } = Path.Combine("/tmp", $"repo_{Guid.NewGuid():N}");
 
@@ -426,9 +440,9 @@ internal sealed class CustomFixture : IAsyncDisposable
     {
         CreateTempDirectory(GitOriginPath);
 
-        originalOrigin = await GetRemoteUrl(REMOTE);
+        _originalOrigin = await GetRemoteUrl(Remote);
 
-        await SetRemoteUrl(REMOTE, GitOriginPath);
+        await SetRemoteUrl(Remote, GitOriginPath);
 
         await CloneBareRepo(GitOriginPath);
     }
@@ -441,7 +455,7 @@ internal sealed class CustomFixture : IAsyncDisposable
             return;
         }
 
-        await SetRemoteUrl(REMOTE, url);
+        await SetRemoteUrl(Remote, url);
     }
 
     private async Task CloneBareRepo(string path)
@@ -455,7 +469,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add(RootDirectory)
                 .Add(path))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -469,6 +483,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("get-url")
                 .Add(remote))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => remoteUrl = x))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
 
         return remoteUrl;
@@ -487,6 +502,7 @@ internal sealed class CustomFixture : IAsyncDisposable
                 .Add("set-url")
                 .Add(remote)
                 .Add(url))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
             .ExecuteAsync();
     }
 }

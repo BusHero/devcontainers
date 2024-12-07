@@ -1,21 +1,17 @@
 using FluentAssertions.Execution;
 using Nuke.Common.IO;
+using Xunit.Abstractions;
 
 namespace build.test;
 
-public sealed class VersioningTests : IAsyncLifetime
+public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
 {
-    private readonly CustomFixture fixture;
-
-    public VersioningTests()
+    private readonly CustomFixture fixture = new(output)
     {
-        this.fixture = new CustomFixture
-        {
-            KeepCommits = false,
-            KeepFiles = false,
-            KeepTags = false,
-        };
-    }
+        KeepCommits = false,
+        KeepFiles = false,
+        KeepTags = false,
+    };
 
     [Theory, AutoData]
     public async Task TwoCommits_FeatAndChore_UpdatesMajor(
