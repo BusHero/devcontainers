@@ -1,6 +1,6 @@
 {
   "features": {
-    "ghcr.io/bushero/devcontainers/features/devcontainers-cli:latest": {
+    "ghcr.io/bushero/devcontainers/features/devcontainers-cli:1.0.0": {
       "version": "1.0.0",
       "resolved": "ghcr.io/bushero/devcontainers/features/devcontainers-cli@sha256:9c3ebf0470c1e5c79c56ba9a8325b2b987ef672574e9d98ca9475d1914a7895f",
       "integrity": "sha256:9c3ebf0470c1e5c79c56ba9a8325b2b987ef672574e9d98ca9475d1914a7895f"
