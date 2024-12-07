@@ -2,7 +2,7 @@
 	"image": "mcr.microsoft.com/devcontainers/javascript-node",
 	"features": {
 		"ghcr.io/bushero/devcontainers/features/nuke:latest": {},
-		"ghcr.io/bushero/devcontainers/features/devcontainers-cli:latest": {},
+		"ghcr.io/bushero/devcontainers/features/devcontainers-cli:1.0.0": {},
 		"ghcr.io/devcontainers/features/docker-in-docker:latest": {},
 		"ghcr.io/devcontainers/features/dotnet:latest": {},
 		"ghcr.io/devcontainers/features/github-cli:latest": {}
@@ -21,6 +21,6 @@
 	},
 	"postCreateCommand": {
 		"restore": "dotnet restore build/_build.csproj",
-		"git": "git config --global --add safe.directory /workspaces/devcontainers"
+		"git": "sudo git config --system --add safe.directory . && git fetch"
 	}
 }
