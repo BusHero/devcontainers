@@ -30,12 +30,13 @@ public sealed partial class Build : NukeBuild
         {
             if (Changes.Any(x => x.StartsWith("build")))
             {
+                Log.Information("Changes to nuke: {status}", true);
                 await OutputToGithub("changesToNuke", "true");
             }
             else
             {
+                Log.Information("Changes to nuke: {status}", false);
                 await OutputToGithub("changesToNuke", "false");
-
             }
         });
 

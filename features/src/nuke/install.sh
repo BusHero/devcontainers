@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 
 if ! command -v dotnet; then
 	if command -v apt; then
@@ -21,6 +21,8 @@ dotnet tool \
 	install \
 	Nuke.GlobalTool \
 	--tool-path $_REMOTE_USER_HOME/.dotnet/tools
+
+
 
 echo '
 _nuke_bash_complete()

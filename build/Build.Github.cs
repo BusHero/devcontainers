@@ -2,6 +2,8 @@ using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tooling;
+using Serilog;
+using System.Security.Cryptography.X509Certificates;
 
 partial class Build : NukeBuild
 {
