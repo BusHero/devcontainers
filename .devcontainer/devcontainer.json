@@ -21,6 +21,6 @@
 	},
 	"postCreateCommand": {
 		"restore": "dotnet restore build/_build.csproj",
-		"git": "sudo git config --system --add safe.directory . && git fetch"
+		"git": "sudo git config --system --add safe.directory $(pwd) && git fetch"
 	}
 }
