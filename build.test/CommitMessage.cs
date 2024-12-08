@@ -6,6 +6,5 @@ public sealed record CommitMessage(string Type, string Message)
 
 	public override string ToString() => $"{Type}: {Message}";
 
-
 	public static implicit operator string(CommitMessage commitMessage) => commitMessage.ToString();
 }

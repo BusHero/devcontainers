@@ -1,13 +1,15 @@
+using JetBrains.Annotations;
+
 namespace build.test;
 
+[UsedImplicitly]
 public sealed record Feature
 {
-	private readonly string name;
+	private readonly string _name;
 
-	public Feature(string name) => this.name = name.Replace("-", string.Empty);
+	public Feature(string name) => _name = name.Replace("-", string.Empty);
 
-	public override string ToString() => name;
-
+	public override string ToString() => _name;
 	
 	public static implicit operator string(Feature feature) => feature.ToString();
 }

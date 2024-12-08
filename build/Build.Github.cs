@@ -1,11 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tooling;
-using Serilog;
-using System.Security.Cryptography.X509Certificates;
 
-partial class Build : NukeBuild
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+partial class Build
 {
 	private const string MAIN_BRANCH = "main";
 	private const string REMOTE = "origin";
@@ -22,7 +23,7 @@ partial class Build : NukeBuild
 	private List<string>? _changes;
 	private List<string> Changes => _changes ??= GetChanges().ToList();
 
-	public IEnumerable<string> GetChanges()
+    private IEnumerable<string> GetChanges()
 	{
 		var changedFiles = Git(Arguments(
 			"diff",

@@ -1,19 +1,23 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 using Nuke.Common;
 using Nuke.Common.IO;
 
+[SuppressMessage("ReSharper", "AllUnderscoreLocalParameterName")]
 sealed partial class Build
 {
     private readonly ReadmeBuilder _readmeBuilder = new();
 
-    private RelativePath PathToAdditionalNotes => FeaturesRoot.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "Notes.md";
+    private RelativePath PathToAdditionalNotes =>
+        FeaturesRoot.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "Notes.md";
 
     private AbsolutePath PathToFeatureDefinition => FeatureRoot / "devcontainer-feature.json";
 
     private AbsolutePath FeatureRoot => FeaturesRoot / "src" / Feature;
 
-    private RelativePath RelativePathToFeatureDefinition => RootDirectory.GetRelativePathTo(FeaturesRoot) / "src" / Feature / "devcontainer-feature.json";
+    private RelativePath RelativePathToFeatureDefinition => RootDirectory.GetRelativePathTo(FeaturesRoot) / "src" /
+                                                            Feature / "devcontainer-feature.json";
 
     private AbsolutePath PathToReadme => FeaturesRoot / "src" / Feature / "README.md";
 
@@ -24,7 +28,7 @@ sealed partial class Build
         {
             var feature = await ReadFeatureSpecification(PathToFeatureDefinition);
 
-            var vsCodeExtenssions = feature.GetVSCodeExtenssions();
+            var vsCodeExtensions = feature.GetVsCodeExtensions();
 
             var content = _readmeBuilder.Build(new Readme
             {
@@ -33,12 +37,12 @@ sealed partial class Build
                 Registry = "ghcr.io",
                 Id = feature.Id,
                 Version = feature.Version,
-                Namesapce = $"bushero/devcontainers/features",
+                Namespace = "bushero/devcontainers/features",
                 Options = feature
-                    .Options
-                    ?.Select(tuple => MapOption(tuple.Key, tuple.Value))
+                    .Options?
+                    .Select(tuple => MapOption(tuple.Key, tuple.Value))
                     .ToList(),
-                VSCodeExtenssions = vsCodeExtenssions,
+                VsCodeExtensions = vsCodeExtensions,
                 PathToAdditionalNotes = PathToAdditionalNotes,
                 PathToDevContainerDefinition = "/" + RelativePathToFeatureDefinition
             });
@@ -53,10 +57,7 @@ sealed partial class Build
 
         var option = new Option
         {
-            Id = key,
-            Type = type,
-            Description = featureOption.Description,
-            DefaultValue = defaultValue,
+            Id = key, Type = type, Description = featureOption.Description, DefaultValue = defaultValue,
         };
 
         return option;
@@ -64,7 +65,7 @@ sealed partial class Build
 
     private async Task<Feature> ReadFeatureSpecification(string path)
     {
-        using var stream = File.OpenRead(path);
+        await using var stream = File.OpenRead(path);
         var feature = await JsonSerializer.DeserializeAsync<Feature>(stream, Converter.Settings);
 
         return feature ?? throw new InvalidOperationException("It's not supposed to be null");

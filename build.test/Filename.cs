@@ -1,10 +1,11 @@
+using JetBrains.Annotations;
+
 namespace build.test;
 
-public class Filename
+[UsedImplicitly]
+public class Filename(string name)
 {
-	public Filename(string name) => Name = name.Replace("-", string.Empty);
-
-	public string Name { get; }
+	private string Name { get; } = name.Replace("-", string.Empty);
 
 	public override string ToString() => Name;
 

@@ -1,12 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Globalization;
+// ReSharper disable All
 
 /// <summary>
 /// Development Container Features Metadata (devcontainer-feature.json). See
 /// https://containers.dev/implementors/features/ for more information.
 /// </summary>
-public partial record Feature
+[SuppressMessage("ReSharper", "CollectionNeverQueried.Global")]
+[SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
+[SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
+public sealed record Feature
 {
     /// <summary>
     /// Passes docker capabilities to include when creating the dev container.
@@ -20,10 +25,10 @@ public partial record Feature
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("containerEnv")]
-    public Dictionary<string, string>? ContainerEnv { get; set; } = null!;
+    public Dictionary<string, string>? ContainerEnv { get; set; }
 
     /// <summary>
-    /// Tool-specific configuration. Each tool should use a JSON object subproperty with a unique
+    /// Tool-specific configuration. Each tool should use a JSON object sub-property with a unique
     /// name to group its customizations.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -275,8 +280,8 @@ public partial struct OnCreateCommandValue
     public string? String;
     public string[]? StringArray;
 
-    public static implicit operator OnCreateCommandValue(string String) => new OnCreateCommandValue { String = String };
-    public static implicit operator OnCreateCommandValue(string[] StringArray) => new OnCreateCommandValue { StringArray = StringArray };
+    public static implicit operator OnCreateCommandValue(string @string) => new OnCreateCommandValue { String = @string };
+    public static implicit operator OnCreateCommandValue(string[] stringArray) => new OnCreateCommandValue { StringArray = stringArray };
 }
 
 /// <summary>
@@ -314,9 +319,9 @@ public partial struct CoordinateOnCreateCommand
     public string? String;
     public string[]? StringArray;
 
-    public static implicit operator CoordinateOnCreateCommand(Dictionary<string, OnCreateCommandValue> AnythingMap) => new() { AnythingMap = AnythingMap };
-    public static implicit operator CoordinateOnCreateCommand(string String) => new() { String = String };
-    public static implicit operator CoordinateOnCreateCommand(string[] StringArray) => new() { StringArray = StringArray };
+    public static implicit operator CoordinateOnCreateCommand(Dictionary<string, OnCreateCommandValue> anythingMap) => new() { AnythingMap = anythingMap };
+    public static implicit operator CoordinateOnCreateCommand(string @string) => new() { String = @string };
+    public static implicit operator CoordinateOnCreateCommand(string[] stringArray) => new() { StringArray = stringArray };
 }
 
 [JsonConverter(typeof(DefaultConverter))]
@@ -325,8 +330,8 @@ public partial struct Default
     public bool? Bool;
     public string? String;
 
-    public static implicit operator Default(bool Bool) => new() { Bool = Bool };
-    public static implicit operator Default(string String) => new() { String = String };
+    public static implicit operator Default(bool @bool) => new() { Bool = @bool };
+    public static implicit operator Default(string @string) => new() { String = @string };
 
     public readonly string GetValue() => Bool?.ToString() ?? String ?? "-";
 }

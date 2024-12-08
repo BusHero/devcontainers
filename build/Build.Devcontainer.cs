@@ -1,8 +1,7 @@
-using Nuke.Common;
 using Nuke.Common.Tooling;
 using Serilog;
 
-sealed partial class Build : NukeBuild
+sealed partial class Build
 {
 	private Tool Devcontainer => ToolResolver.GetPathTool("devcontainer");
 
