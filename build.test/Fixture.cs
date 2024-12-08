@@ -78,7 +78,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
             .ExecuteAsync();
     }
 
-    public async Task RevertCommits(string? commit)
+    private async Task RevertCommits(string? commit)
     {
         if (string.IsNullOrEmpty(commit))
         {
@@ -96,7 +96,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
             .ExecuteAsync();
     }
 
-    public void RemoveTempFiles(IReadOnlyCollection<string> tempFiles)
+    private void RemoveTempFiles(IReadOnlyCollection<string> tempFiles)
     {
         if (tempFiles.Count == 0)
         {
@@ -116,10 +116,10 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
         }
     }
 
-    public void CreateTempDirectory(string path)
+    private void CreateTempDirectory(string path)
     {
         Directory.CreateDirectory(path);
-        this._tempFiles.Add(path);
+        _tempFiles.Add(path);
     }
 
     public string CreateTempFile()
@@ -131,17 +131,17 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
         return path;
     }
 
-    public void CreateTempFile(string path)
+    private void CreateTempFile(string path)
     {
         using var _ = File.Create(path);
-        this._tempFiles.Add(path);
+        _tempFiles.Add(path);
     }
 
     public async Task CreateFeatureConfig(
         Feature featureName,
         Version version)
     {
-        this.CreateTempDirectory(featureName.GetRoot(RootDirectory));
+        CreateTempDirectory(featureName.GetRoot(RootDirectory));
 
         var featureConfig = featureName.GetConfig(RootDirectory);
         var json = $$"""
@@ -158,7 +158,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
     public async Task<string?> GetVersion(Feature feature)
     {
         var featureConfig = feature.GetConfig(RootDirectory);
-        using var fileStream = File.OpenRead(featureConfig);
+        await using var fileStream = File.OpenRead(featureConfig);
         var document = await JsonDocument.ParseAsync(fileStream);
 
         return document.RootElement.GetProperty("version").GetString();
@@ -205,7 +205,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
             .Add(feature), false);
     }
 
-    public async Task RunBuild(
+    private async Task RunBuild(
         Func<ArgumentsBuilder, ArgumentsBuilder> configure,
         bool skip = true)
     {
@@ -271,7 +271,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
             .ExecuteAsync();
     }
 
-    public async Task DeleteGitTags()
+    private async Task DeleteGitTags()
     {
         var tags = new List<string>();
 
@@ -298,7 +298,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
     }
 
     public async Task<string> GetLatestCommitMessage(
-        string path = null!)
+        string? path = null)
     {
         var commitMessage = string.Empty;
 
@@ -325,11 +325,11 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
 
     public async Task<string> GetLatestTag(
         string feature,
-        string path = null!)
+        string? path = null)
     {
         var tag = string.Empty;
 
-        var result = await Cli.Wrap("git")
+        await Cli.Wrap("git")
             .WithArguments(args => args
                 .Add("describe")
                 .Add("--abbrev=0")
@@ -430,9 +430,9 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
         return email;
     }
 
-    private const string Remote = "origin";
+    private const string REMOTE = "origin";
 
-    private string? _originalOrigin = default;
+    private string? _originalOrigin;
 
     public string GitOriginPath { get; } = Path.Combine("/tmp", $"repo_{Guid.NewGuid():N}");
 
@@ -440,22 +440,21 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
     {
         CreateTempDirectory(GitOriginPath);
 
-        _originalOrigin = await GetRemoteUrl(Remote);
+        _originalOrigin = await GetRemoteUrl(REMOTE);
 
-        await SetRemoteUrl(Remote, GitOriginPath);
+        await SetRemoteUrl(REMOTE, GitOriginPath);
 
         await CloneBareRepo(GitOriginPath);
     }
 
-
-    public async Task ResetOrigin(string? url)
+    private async Task ResetOrigin(string? url)
     {
         if (url is null)
         {
             return;
         }
 
-        await SetRemoteUrl(Remote, url);
+        await SetRemoteUrl(REMOTE, url);
     }
 
     private async Task CloneBareRepo(string path)

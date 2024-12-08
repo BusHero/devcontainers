@@ -1,9 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
+
+using JetBrains.Annotations;
+
 using Nuke.Common;
 using Nuke.Common.IO;
 
+[SuppressMessage("ReSharper", "AllUnderscoreLocalParameterName")]
 public partial class Build
 {
-	private Target ListTemplatesAndFeatures => _ => _
+	[UsedImplicitly]
+    private Target ListTemplatesAndFeatures => _ => _
 		.Requires(() => GithubOutput)
 		.Triggers(GetFeatures, GetTemplates, CheckChangesToNuke);
 

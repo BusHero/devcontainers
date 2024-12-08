@@ -1,6 +1,6 @@
 using System.Text;
 
-public static class StringBuilderExtenssions
+public static class StringBuilderExtensions
 {
     public static StringBuilder AppendHeading1(
         this StringBuilder stringBuilder,
@@ -22,18 +22,12 @@ public static class StringBuilderExtenssions
 
     public static StringBuilder AppendListItem(
         this StringBuilder stringBuilder,
-        string? listItem) => stringBuilder
-            .Append("- ")
-            .AppendLine(listItem);
-
-    public static StringBuilder AppendListItem(
-        this StringBuilder stringBuilder,
         Func<StringBuilder, StringBuilder> func) => stringBuilder
             .Append("- ")
             .Combine(func)
             .AppendLine();
 
-    public static StringBuilder Combine(
+    private static StringBuilder Combine(
         this StringBuilder stringBuilder,
         Func<StringBuilder, StringBuilder> next) => next(stringBuilder);
 
@@ -55,11 +49,10 @@ public static class StringBuilderExtenssions
     public static StringBuilder AppendHorizontalLine(this StringBuilder stringBuilder) => stringBuilder
         .AppendLine("---");
 
-    public static StringBuilder AppendNote(
-        this StringBuilder stringBuilder,
+    public static void AppendNote(this StringBuilder stringBuilder,
         Func<StringBuilder, StringBuilder> func)
     {
-        return stringBuilder
+        stringBuilder
             .Append('_')
             .Combine(func)
             .AppendLine("_");

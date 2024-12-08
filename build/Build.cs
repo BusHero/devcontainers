@@ -1,12 +1,20 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
-using Nuke.Common;
-using Nuke.Common.Tooling;
 using CliWrap;
-using Serilog;
-using Nuke.Common.IO;
-using System.Text.Json;
 
+using JetBrains.Annotations;
+
+using Nuke.Common;
+using Nuke.Common.IO;
+using Nuke.Common.Tooling;
+
+using Serilog;
+
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "AllUnderscoreLocalParameterName")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public sealed partial class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Version);
@@ -40,6 +48,7 @@ public sealed partial class Build : NukeBuild
             }
         });
 
+    [UsedImplicitly]
     public Target ReleaseFeature => _ => _
         .Triggers(Version)
         .Requires(() => Feature);
@@ -137,7 +146,8 @@ public sealed partial class Build : NukeBuild
         {
             var json = await File.ReadAllTextAsync(PathToFeatureDefinition);
             var document = JsonNode.Parse(json)
-                ?? throw new InvalidOperationException($"{PathToFeatureDefinition} is not a valid json document");
+                           ?? throw new InvalidOperationException(
+                               $"{PathToFeatureDefinition} is not a valid json document");
 
             var versionJsonElement = document.Root["version"];
 
@@ -158,15 +168,9 @@ public sealed partial class Build : NukeBuild
                 return;
             }
 
-
-            if (commits.Any(x => x.StartsWith("feat:")))
-            {
-                version = version.IncrementMinor();
-            }
-            else
-            {
-                version = version.IncrementBuild();
-            }
+            version = commits.Any(x => x.StartsWith("feat:")) 
+                ? version.IncrementMinor() 
+                : version.IncrementBuild();
 
             document["version"] = version.ToString();
             Log.Information("new version: {version}", version);

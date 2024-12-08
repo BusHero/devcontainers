@@ -1,4 +1,4 @@
-public static class VersionExtenssions
+public static class VersionExtensions
 {
 	public static Version IncrementMajor(this Version version)
 	{

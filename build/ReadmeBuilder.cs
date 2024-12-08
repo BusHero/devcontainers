@@ -13,13 +13,13 @@ public class ReadmeBuilder
             .AppendLine()
             .AppendCodeBlock($$"""
             "features": {
-                {{readme.Registry}}/{{readme.Namesapce}}/{{readme.Id}}:{{readme.Version}}: {}
+                {{readme.Registry}}/{{readme.Namespace}}/{{readme.Id}}:{{readme.Version}}: {}
             }
             """, "json")
             .AppendLine()
             ;
         AppendOptionsTable(stringBuilder, readme.Options);
-        AppendVSCustomization(stringBuilder, readme.VSCodeExtenssions);
+        AppendVsCustomization(stringBuilder, readme.VsCodeExtensions);
         AppendNotes(stringBuilder, readme.PathToAdditionalNotes);
         AppendFooter(
             stringBuilder,
@@ -28,38 +28,37 @@ public class ReadmeBuilder
         return stringBuilder.ToString();
     }
 
-    public StringBuilder AppendNotes(
-        StringBuilder stringBuilder,
+    private void AppendNotes(StringBuilder stringBuilder,
         string? pathToAdditionalNotes)
     {
         if (pathToAdditionalNotes is null)
         {
-            return stringBuilder;
+            return;
         }
 
         if (!File.Exists(pathToAdditionalNotes))
         {
-            return stringBuilder;
+            return;
         }
 
-        return File
+        File
             .ReadAllLines(pathToAdditionalNotes)
             .Aggregate(stringBuilder, (builder, line) => builder.AppendLine(line))
             .AppendLine();
     }
-    public StringBuilder AppendVSCustomization(
-        StringBuilder stringBuilder,
+
+    private void AppendVsCustomization(StringBuilder stringBuilder,
         IReadOnlyCollection<string>? customizations)
     {
         if (customizations is null || customizations.Count == 0)
         {
-            return stringBuilder;
+            return;
         }
 
         stringBuilder
             .AppendHeading2("Customizations")
             .AppendLine()
-            .AppendHeading3("VS Code Extenssions")
+            .AppendHeading3("VS Code Extensions")
             .AppendLine();
 
         customizations.Aggregate(
@@ -67,17 +66,14 @@ public class ReadmeBuilder
             (builder, ext) => builder
                 .AppendListItem(x => x.AppendCode(ext)))
             .AppendLine();
-
-        return stringBuilder;
     }
 
-    public StringBuilder AppendOptionsTable(
-        StringBuilder stringBuilder,
+    private void AppendOptionsTable(StringBuilder stringBuilder,
         IReadOnlyCollection<Option>? options)
     {
         if (options is null || options.Count == 0)
         {
-            return stringBuilder;
+            return;
         }
 
         stringBuilder
@@ -86,14 +82,13 @@ public class ReadmeBuilder
             .AppendLine("| Options Id | Description | Type | Default Value |")
             .AppendLine("|-----|-----|-----|-----|");
 
-        return options
+        options
             .Select(x => $"| {x.Id} | {x.Description} | {x.Type} | {x.DefaultValue} |")
             .Aggregate(stringBuilder, (builder, option) => builder.AppendLine(option))
             .AppendLine();
     }
 
-    public StringBuilder AppendFooter(
-        StringBuilder builder,
+    private void AppendFooter(StringBuilder builder,
         string url)
     {
         builder
@@ -105,8 +100,6 @@ public class ReadmeBuilder
                 .Append(". Add additional notes to a ")
                 .AppendCode("Notes.md")
                 .Append('.'));
-
-        return builder;
     }
 }
 
@@ -118,7 +111,7 @@ public record Readme
 
     public required string Registry { get; init; }
 
-    public required string Namesapce { get; init; }
+    public required string Namespace { get; init; }
 
     public required string Id { get; init; }
 
@@ -126,7 +119,7 @@ public record Readme
 
     public IReadOnlyCollection<Option>? Options { get; init; }
 
-    public IReadOnlyCollection<string>? VSCodeExtenssions { get; init; }
+    public IReadOnlyCollection<string>? VsCodeExtensions { get; init; }
 
     public string? PathToAdditionalNotes { get; init; }
 

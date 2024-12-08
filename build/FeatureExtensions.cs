@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-public static class FeatureExtenssions
+public static class FeatureExtensions
 {
-	public static List<string>? GetVSCodeExtenssions(this Feature feature)
+	public static List<string>? GetVsCodeExtensions(this Feature feature)
 	{
 		var customizations = feature.Customizations;
 		if (customizations is null)
@@ -15,14 +15,12 @@ public static class FeatureExtenssions
 			return null;
 		}
 
-		if (customization is not JsonElement)
+		if (customization is not JsonElement element)
 		{
 			return null;
 		}
 
-		var jsonElement = (JsonElement)customization;
-
-		if (!jsonElement.TryGetProperty("extensions", out var jsonElementExtensions))
+        if (!element.TryGetProperty("extensions", out var jsonElementExtensions))
 		{
 			return null;
 		}

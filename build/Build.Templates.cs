@@ -1,8 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+
+using JetBrains.Annotations;
+
 using Nuke.Common;
 using Nuke.Common.IO;
 using Serilog;
 
+[SuppressMessage("ReSharper", "AllUnderscoreLocalParameterName")]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 sealed partial class Build
 {
 	private AbsolutePath TemplatesRoot => RootDirectory / "templates";
@@ -33,7 +39,8 @@ sealed partial class Build
 			await OutputToGithub("templates", templatesStr);
 		});
 
-	private Target BuildTemplate => _ => _
+	[UsedImplicitly]
+    private Target BuildTemplate => _ => _
 		.Requires(() => Template)
 		.Triggers(TestTemplate)
 		.Executes(() => Bash($"{Scripts / "build.sh"} {Template}"));
@@ -42,9 +49,7 @@ sealed partial class Build
 		.Requires(() => Template)
 		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 
-	private Target PublishTemplate => _ => _
-		.Executes(() =>
-		{
-			return Devcontainer($"templates publish {TemplatesRoot} --namespace {GitHubNamespace}/templates");
-		});
+	[UsedImplicitly]
+    private Target PublishTemplate => _ => _
+		.Executes(() => Devcontainer($"templates publish {TemplatesRoot} --namespace {GitHubNamespace}/templates"));
 }

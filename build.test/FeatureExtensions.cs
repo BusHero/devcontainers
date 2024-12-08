@@ -3,7 +3,7 @@ using Nuke.Common.IO;
 
 namespace build.test;
 
-public static class FeatureExtenssions
+public static class FeatureExtensions
 {
 	public static Tag GetTag(
 		this Feature feature,
@@ -39,7 +39,7 @@ public static class FeatureExtenssions
 		AbsolutePath projectRoot)
 	{
 		var featureConfig = feature.GetConfig(projectRoot);
-		using var fileStream = File.OpenRead(featureConfig);
+		await using var fileStream = File.OpenRead(featureConfig);
 		var document = await JsonDocument.ParseAsync(fileStream);
 
 		return document.RootElement.GetProperty("version").GetString();

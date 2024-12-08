@@ -6,7 +6,7 @@ namespace build.test;
 
 public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
 {
-    private readonly CustomFixture fixture = new(output)
+    private readonly CustomFixture _fixture = new(output)
     {
         KeepCommits = false,
         KeepFiles = false,
@@ -18,15 +18,15 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
-        feature.CreateTempFile(fixture.RootDirectory);
-        await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        feature.CreateTempFile(_fixture.RootDirectory);
+        await _fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+        var newVersion = await feature.GetVersion(_fixture.RootDirectory);
 
         newVersion
             .Should()
@@ -38,12 +38,12 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+        var newVersion = await feature.GetVersion(_fixture.RootDirectory);
 
         newVersion
             .Should()
@@ -55,13 +55,13 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
+        await _fixture.CreateFeatureConfig(feature, version);
 
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await feature.GetVersion(fixture.RootDirectory);
+        var newVersion = await feature.GetVersion(_fixture.RootDirectory);
 
         newVersion
             .Should()
@@ -73,15 +73,15 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
-        feature.CreateTempFile(fixture.RootDirectory);
-        await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(_fixture.RootDirectory));
+        feature.CreateTempFile(_fixture.RootDirectory);
+        await _fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await fixture.GetVersion(feature);
+        var newVersion = await _fixture.GetVersion(feature);
 
         newVersion
             .Should()
@@ -94,16 +94,16 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Version version,
         Tag wrongTag)
     {
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
-        await fixture.AddGitTag(wrongTag);
-        feature.CreateTempFile(fixture.RootDirectory);
-        await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        await _fixture.AddGitTag(wrongTag);
+        feature.CreateTempFile(_fixture.RootDirectory);
+        await _fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await fixture.GetVersion(feature);
+        var newVersion = await _fixture.GetVersion(feature);
 
         newVersion
             .Should()
@@ -115,15 +115,15 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(fixture.RootDirectory));
-        var tempFileName = fixture.CreateTempFile();
-        await fixture.AddAndCommit(CommitMessage.New("feat"), tempFileName);
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("chore"), feature.GetRoot(_fixture.RootDirectory));
+        var tempFileName = _fixture.CreateTempFile();
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), tempFileName);
 
-        await fixture.RunVersionTarget(feature);
+        await _fixture.RunVersionTarget(feature);
 
-        var newVersion = await fixture.GetVersion(feature);
+        var newVersion = await _fixture.GetVersion(feature);
 
         newVersion
             .Should()
@@ -135,10 +135,10 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.RunCreateReleaseCommitTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.RunCreateReleaseCommitTarget(feature);
 
-        var expectedMessage = await fixture.GetLatestCommitMessage();
+        var expectedMessage = await _fixture.GetLatestCommitMessage();
 
         expectedMessage
             .Should()
@@ -150,10 +150,10 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.RunCreateReleaseCommitTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.RunCreateReleaseCommitTarget(feature);
 
-        var modifiedFiles = await fixture.GetModifiedFilesLatestCommit();
+        var modifiedFiles = await _fixture.GetModifiedFilesLatestCommit();
 
         modifiedFiles
             .Should()
@@ -165,15 +165,15 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        var tempFile = feature.CreateTempFile(fixture.RootDirectory);
-        await fixture.RunCreateReleaseCommitTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        var tempFile = feature.CreateTempFile(_fixture.RootDirectory);
+        await _fixture.RunCreateReleaseCommitTarget(feature);
 
-        var modifiedFiles = await fixture.GetModifiedFilesLatestCommit();
+        var modifiedFiles = await _fixture.GetModifiedFilesLatestCommit();
 
         modifiedFiles
             .Should()
-            .Contain(fixture.RootDirectory.GetRelativePathTo(tempFile));
+            .Contain(_fixture.RootDirectory.GetRelativePathTo(tempFile));
     }
 
     [Theory, AutoData]
@@ -181,12 +181,12 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        var tempFile = feature.CreateTempFile(fixture.RootDirectory);
-        await fixture.RunCreateReleaseCommitTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        feature.CreateTempFile(_fixture.RootDirectory);
+        await _fixture.RunCreateReleaseCommitTarget(feature);
 
-        var username = await fixture.GetCommitterName();
-        var email = await fixture.GetCommiterEmail();
+        var username = await _fixture.GetCommitterName();
+        var email = await _fixture.GetCommiterEmail();
 
         using (new AssertionScope())
         {
@@ -200,11 +200,11 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
-        await fixture.RunCreateReleaseTagTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        await _fixture.RunCreateReleaseTagTarget(feature);
 
-        var tag = await fixture.GetLatestTag(feature);
+        var tag = await _fixture.GetLatestTag(feature);
 
         tag.Should()
             .Be(feature.GetTag(version));
@@ -215,10 +215,10 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.RunGenerateDocumentationTarget(feature);
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.RunGenerateDocumentationTarget(feature);
 
-        var documentation = feature.GetDocumentation(fixture.RootDirectory);
+        var documentation = feature.GetDocumentation(_fixture.RootDirectory);
 
         File.Exists(documentation).Should().BeTrue();
     }
@@ -228,20 +228,20 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.OverrideOrigin();
+        await _fixture.OverrideOrigin();
         var expectedVersion = version.IncrementMinor();
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunReleaseFeature(feature);
+        await _fixture.RunReleaseFeature(feature);
 
-        var newVersion = await feature.GetVersion(fixture.RootDirectory);
-        var commitMessage = await fixture.GetLatestCommitMessage();
-        var files = await fixture.GetModifiedFilesLatestCommit();
-        var latestGitTag = await fixture.GetLatestTag(feature);
-        var hashForTag = await fixture.GetGitHash(latestGitTag);
-        var hashForHead = await fixture.GetGitHash("HEAD");
+        var newVersion = await feature.GetVersion(_fixture.RootDirectory);
+        var commitMessage = await _fixture.GetLatestCommitMessage();
+        var files = await _fixture.GetModifiedFilesLatestCommit();
+        var latestGitTag = await _fixture.GetLatestTag(feature);
+        var hashForTag = await _fixture.GetGitHash(latestGitTag);
+        var hashForHead = await _fixture.GetGitHash("HEAD");
         using (new AssertionScope())
         {
             newVersion.Should().Be(expectedVersion);
@@ -259,18 +259,18 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.OverrideOrigin();
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.OverrideOrigin();
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunReleaseFeature(feature);
+        await _fixture.RunReleaseFeature(feature);
 
-        var newVersion = await feature.GetVersion(fixture.RootDirectory);
-        var commitMessage = await fixture.GetLatestCommitMessage();
-        var files = await fixture.GetModifiedFilesLatestCommit();
-        var latestGitTag = await fixture.GetLatestTag(feature);
-        var hashForTag = await fixture.GetGitHash(latestGitTag);
-        var hashForHead = await fixture.GetGitHash("HEAD");
+        var newVersion = await feature.GetVersion(_fixture.RootDirectory);
+        var commitMessage = await _fixture.GetLatestCommitMessage();
+        var files = await _fixture.GetModifiedFilesLatestCommit();
+        var latestGitTag = await _fixture.GetLatestTag(feature);
+        var hashForTag = await _fixture.GetGitHash(latestGitTag);
+        var hashForHead = await _fixture.GetGitHash("HEAD");
         using (new AssertionScope())
         {
             newVersion.Should().Be(version);
@@ -287,17 +287,17 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Feature feature,
         Version version)
     {
-        await fixture.OverrideOrigin();
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(fixture.RootDirectory));
+        await _fixture.OverrideOrigin();
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
-        await fixture.RunReleaseFeature(feature);
+        await _fixture.RunReleaseFeature(feature);
 
-        await fixture.GetLatestCommitMessage();
-        var latestTag = await fixture.GetLatestTag(feature, fixture.GitOriginPath);
-        var latestMessage = await fixture.GetLatestCommitMessage(fixture.GitOriginPath);
-        var expectedMessage = await fixture.GetLatestCommitMessage();
+        await _fixture.GetLatestCommitMessage();
+        var latestTag = await _fixture.GetLatestTag(feature, _fixture.GitOriginPath);
+        var latestMessage = await _fixture.GetLatestCommitMessage(_fixture.GitOriginPath);
+        var expectedMessage = await _fixture.GetLatestCommitMessage();
 
         using (new AssertionScope())
         {
@@ -313,16 +313,16 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         Version version)
     {
         var commitMessage = CommitMessage.New("feat");
-        await fixture.CreateFeatureConfig(feature, version);
-        await fixture.AddAndCommit(commitMessage, feature.GetRoot(fixture.RootDirectory));
-        await fixture.AddGitTag(feature.GetTag(version));
-        await fixture.OverrideOrigin();
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(commitMessage, feature.GetRoot(_fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.OverrideOrigin();
 
-        await fixture.RunReleaseFeature(feature);
+        await _fixture.RunReleaseFeature(feature);
 
-        var latestCommitMessage = await fixture.GetLatestCommitMessage();
-        var latestTag = await fixture.GetLatestTag(feature, fixture.GitOriginPath);
-        var latestMessage = await fixture.GetLatestCommitMessage(fixture.GitOriginPath);
+        var latestCommitMessage = await _fixture.GetLatestCommitMessage();
+        var latestTag = await _fixture.GetLatestTag(feature, _fixture.GitOriginPath);
+        var latestMessage = await _fixture.GetLatestCommitMessage(_fixture.GitOriginPath);
 
         using (new AssertionScope())
         {
@@ -334,9 +334,9 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await fixture.SaveCommit("HEAD");
-        await fixture.SaveTags();
+        await _fixture.SaveCommit("HEAD");
+        await _fixture.SaveTags();
     }
 
-    public async Task DisposeAsync() => await fixture.DisposeAsync();
+    public async Task DisposeAsync() => await _fixture.DisposeAsync();
 }
