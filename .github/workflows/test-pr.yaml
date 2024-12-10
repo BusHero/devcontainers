@@ -85,7 +85,7 @@ jobs:
         run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
 
   test-nuke:
-    if: ${{ needs.changes.outputs.changesToNuke }}
+    if: ${{ needs.changes.outputs.changesToNuke == 'true' }}
     needs: [changes]
     name: Test nuke
     runs-on: ubuntu-latest
