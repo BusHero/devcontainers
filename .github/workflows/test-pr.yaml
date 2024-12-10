@@ -85,14 +85,11 @@ jobs:
         run: ./build.sh TestFeature -Feature '${{ matrix.feature }}'
 
   test-nuke:
-    if: true
+    if: ${{ needs.changes.outputs.changesToNuke == 'true' }}
     needs: [changes]
     name: Test nuke
     runs-on: ubuntu-latest
-    env:
-      foo: ${{ needs.changes.outputs.changesToNuke }}
     steps:
-      - run: echo "value is '$foo'"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
