@@ -32,6 +32,8 @@ public sealed partial class Build : NukeBuild
         return new Version(version);
     }
 
+
+
     private Target CheckChangesToNuke => _ => _
         .Requires(() => GithubOutput)
         .Executes(async () =>
@@ -168,8 +170,8 @@ public sealed partial class Build : NukeBuild
                 return;
             }
 
-            version = commits.Any(x => x.StartsWith("feat:")) 
-                ? version.IncrementMinor() 
+            version = commits.Any(x => x.StartsWith("feat:"))
+                ? version.IncrementMinor()
                 : version.IncrementBuild();
 
             document["version"] = version.ToString();
