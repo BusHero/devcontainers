@@ -5,10 +5,10 @@
       "resolved": "ghcr.io/bushero/devcontainers/features/devcontainers-cli@sha256:9c3ebf0470c1e5c79c56ba9a8325b2b987ef672574e9d98ca9475d1914a7895f",
       "integrity": "sha256:9c3ebf0470c1e5c79c56ba9a8325b2b987ef672574e9d98ca9475d1914a7895f"
     },
-    "ghcr.io/bushero/devcontainers/features/nuke:latest": {
-      "version": "1.5.0",
-      "resolved": "ghcr.io/bushero/devcontainers/features/nuke@sha256:0ac582c8ccede1b55b76ef7ede6a47dd5d15f066317c6be892958c8c085843ec",
-      "integrity": "sha256:0ac582c8ccede1b55b76ef7ede6a47dd5d15f066317c6be892958c8c085843ec"
+    "ghcr.io/bushero/devcontainers/features/nuke:1.5.1": {
+      "version": "1.5.1",
+      "resolved": "ghcr.io/bushero/devcontainers/features/nuke@sha256:2e64150907d86a5eedcfb755eaef732f0aad1751129e3eebb49a1023d5fcca6c",
+      "integrity": "sha256:2e64150907d86a5eedcfb755eaef732f0aad1751129e3eebb49a1023d5fcca6c"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:latest": {
       "version": "2.12.0",
