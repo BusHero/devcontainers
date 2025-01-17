@@ -1,6 +1,6 @@
 {
     "id": "texlive-alpine",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "name": "Alpine TexLive",
     "description": "A template for TexLive with Alpine linux",
     "documentationURL": "https://github.com/BusHero/devcontainers/tree/main/templates/src/texlive-alpine",

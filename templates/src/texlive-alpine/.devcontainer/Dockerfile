@@ -10,9 +10,9 @@ RUN apk update \
 WORKDIR /
 
 ARG ltex_version=
-ADD https://github.com/valentjn/ltex-ls/releases/download/${ltex_version}/ltex-ls-${ltex_version}.tar.gz /ltex-ls-${ltex_version}.tar.gz
-RUN tar -xzf /ltex-ls-${ltex_version}.tar.gz \
-    && rm ltex-ls-${ltex_version}.tar.gz
+ADD https://github.com/valentjn/ltex-ls/releases/download/${ltex_version}/ltex-ls-${ltex_version}.tar.gz /ltex-ls.tar.gz
+RUN tar -xzf /ltex-ls.tar.gz \
+    && rm ltex-ls.tar.gz
 
 ENV latexindent_settings_file="mysettings.yaml"
 ENV texlive_bin="/opt/texlive/texdir/bin"
@@ -20,6 +20,9 @@ ENV LATEXINDENT_CONFIG="${texlive_bin}/config/indentconfig.yaml"
 COPY common/mysettings.yaml "${texlive_bin}/config/${latexindent_settings_file}"
 RUN echo -e "paths: \n\
     - ${texlive_bin}/config/${latexindent_settings_file}" >> "${LATEXINDENT_CONFIG}"
+
+RUN tlmgr install latexindent \
+    && tlmgr install latexmk
 
 COPY common/packages /tmp/packages
 
