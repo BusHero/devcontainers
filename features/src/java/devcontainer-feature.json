@@ -1,6 +1,6 @@
 {
-    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
-    "id": "java",
-    "version": "1.0.1",
-    "name": "Java"
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+  "id": "java",
+  "version": "1.0.2",
+  "name": "Java"
 }
