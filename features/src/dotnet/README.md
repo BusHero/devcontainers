@@ -4,13 +4,13 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/dotnet:1.2.0: {}
+    "ghcr.io/bushero/devcontainers/features/dotnet:1.2.0": {}
 }
 ```
 
 ## Customizations
 
-### VS Code Extenssions
+### VS Code Extensions
 
 - `ms-dotnettools.csharp`
 
