@@ -4,8 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"args": {
 			"scheme": "${templateOption:texliveScheme}",
-			"ltex_version": "15.2.0",
-			"latexindent_settings_file": "mysettings.yaml"
+			"ltex_version": "15.2.0"
 		}
 	},
 	"customizations": {
@@ -21,7 +20,44 @@
 					"zsh": {
 						"path": "/bin/zsh"
 					}
-				}
+				},
+				"files.exclude": {
+					"**/*.aux": true,
+					"**/*.bbl": true,
+					"**/*.bbl-SAVE-ERROR": true,
+					"**/*.bcf": true,
+					"**/*.bib.sav": true,
+					"**/*.blg": true,
+					"**/*.fdb_latexmk": true,
+					"**/*.fls": true,
+					"**/*.lof": true,
+					"**/*.log": true,
+					"**/*.pdf": true,
+					"**/*.run.xml": true,
+					"**/*.synctex.gz": true,
+					"**/bin": true,
+					"**/ltex*.txt": true
+				},
+				"[bibtex]": {
+					"editor.defaultFormatter": "James-Yu.latex-workshop"
+				},
+				"latex-workshop.formatting.latexindent.args": [
+					"-c",
+					"%DIR%/",
+					"%TMPFILE%"
+				],
+				"latex-workshop.linting.run": "onType",
+				"latex-workshop.latex.autoBuild.run": "onSave",
+				"latex-workshop.formatting.latex": "latexindent",
+				"latex-workshop.latex.bibDirs": [
+					"/workspaces/"
+				],
+				"ltex.ltex-ls.path": "/ltex-ls-15.2.0",
+				"ltex.java.path": "/usr/",
+				"ltex.additionalRules.languageModel": "en",
+				"ltex.completionEnabled": true,
+				"ltex.additionalRules.enablePickyRules": true,
+				"ltex.statusBarItem": true
 			}
 		},
 		"settings": {
