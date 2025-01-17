@@ -1,11 +1,26 @@
 {
     "id": "texlive-alpine",
-    "version": "1.6.0",
+    "version": "0.0.1",
     "name": "Alpine TexLive",
     "description": "A template for TexLive with Alpine linux",
-    "documentationURL": "https://github.com/devcontainers/template-starter/tree/main/src/hello",
-    "licenseURL": "https://github.com/devcontainers/template-starter/blob/main/LICENSE",
+    "documentationURL": "https://github.com/BusHero/devcontainers/tree/main/templates/src/texlive-alpine",
+    "licenseURL": "https://raw.githubusercontent.com/BusHero/devcontainers/refs/heads/main/LICENSE",
     "platforms": [
-        "Any"
-    ]
+        "Alpine"
+    ],
+    "options": {
+        "texliveScheme": {
+            "type": "string",
+            "description": "The scheme of TexLive to install",
+            "enum": [
+                "full",
+                "tetex",
+                "small",
+                "minimal",
+                "medium",
+                "basic"
+            ],
+            "default": "minimal"
+        }
+    }
 }

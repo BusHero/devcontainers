@@ -1,6 +1,32 @@
 {
-	"name": "Alpine TexLive",
+	"name": "TeX Live base",
 	"build": {
-		"dockerfile": "Dockerfile"
-	}
+		"dockerfile": "Dockerfile",
+		"args": {
+			"scheme": "${templateOption:texliveScheme}",
+			"ltex_version": "15.2.0",
+			"latexindent_settings_file": "mysettings.yaml"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"valentjn.vscode-ltex",
+				"James-Yu.latex-workshop",
+				"ms-azuretools.vscode-docker"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				"terminal.integrated.profiles.linux": {
+					"zsh": {
+						"path": "/bin/zsh"
+					}
+				}
+			}
+		},
+		"settings": {
+			"terminal.integrated.shell.*": "/bin/zsh"
+		}
+	},
+	"remoteUser": "root"
 }
