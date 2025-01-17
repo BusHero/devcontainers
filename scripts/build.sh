@@ -6,6 +6,8 @@ set -e
 shopt -s dotglob
 
 SRC_DIR="/tmp/${TEMPLATE_ID}"
+rm -rf ${SRC_DIR}
+
 cp -R "templates/src/${TEMPLATE_ID}" "${SRC_DIR}"
 
 pushd "${SRC_DIR}"
@@ -34,18 +36,16 @@ fi
 
 popd
 
-TEST_DIR="test/${TEMPLATE_ID}"
+TEST_DIR="templates/test/${TEMPLATE_ID}"
 if [ -d "${TEST_DIR}" ] ; then
     DEST_DIR="${SRC_DIR}/test-project"
     echo "(*) Copying test folder"
     mkdir -p ${DEST_DIR}
     cp -Rp ${TEST_DIR}/* ${DEST_DIR}
-    cp test/test-utils/test-utils.sh ${DEST_DIR}
+    cp templates/test/test-utils/test-utils.sh ${DEST_DIR}
 fi
 
 export DOCKER_BUILDKIT=1
-echo "(*) Installing @devcontainer/cli"
-npm install -g @devcontainers/cli 2>&1
 
 echo "Building Dev Container"
 ID_LABEL="test-container=${TEMPLATE_ID}"
