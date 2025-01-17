@@ -1,6 +1,6 @@
 {
-    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
-    "id": "git-lfs",
-    "version": "1.0.1",
-    "name": "git lfs (Alpine)"
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
+  "id": "git-lfs",
+  "version": "1.0.2",
+  "name": "git lfs (Alpine)"
 }
