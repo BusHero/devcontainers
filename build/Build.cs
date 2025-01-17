@@ -139,6 +139,11 @@ public sealed partial class Build : NukeBuild
                 .ExecuteAsync();
         });
 
+    private static readonly JsonSerializerOptions _jsonSerializationOptions = new JsonSerializerOptions
+    {
+        WriteIndented = true,
+    };
+
     public Target Version => _ => _
         .Requires(() => Feature)
         .Triggers(GenerateDocumentationFeature)
@@ -168,14 +173,15 @@ public sealed partial class Build : NukeBuild
                 return;
             }
 
-            version = commits.Any(x => x.StartsWith("feat:")) 
-                ? version.IncrementMinor() 
+            version = commits.Any(x => x.StartsWith("feat:"))
+                ? version.IncrementMinor()
                 : version.IncrementBuild();
 
             document["version"] = version.ToString();
             Log.Information("new version: {version}", version);
 
-            var outputJson = document.ToJsonString();
+            var outputJson = document.ToJsonString(_jsonSerializationOptions);
+
             await File.WriteAllTextAsync(PathToFeatureDefinition, outputJson);
         });
 
