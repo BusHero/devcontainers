@@ -1,3 +1,8 @@
 {
-	"dotnet.defaultSolution": "devcontainers.sln"
+	"dotnet.defaultSolution": "devcontainers.sln",
+	"files.exclude": {
+		"**/bin": true,
+		"**/obj": true,
+		"**/.idea": true,
+	},
 }

@@ -13,7 +13,7 @@ public class ReadmeBuilder
             .AppendLine()
             .AppendCodeBlock($$"""
             "features": {
-                {{readme.Registry}}/{{readme.Namespace}}/{{readme.Id}}:{{readme.Version}}: {}
+                "{{readme.Registry}}/{{readme.Namespace}}/{{readme.Id}}:{{readme.Version}}": {}
             }
             """, "json")
             .AppendLine()
