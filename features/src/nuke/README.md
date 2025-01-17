@@ -4,13 +4,13 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/nuke:1.5.1: {}
+    "ghcr.io/bushero/devcontainers/features/nuke:1.5.1": {}
 }
 ```
 
 ## Customizations
 
-### VS Code Extenssions
+### VS Code Extensions
 
 - `nuke.support`
 
