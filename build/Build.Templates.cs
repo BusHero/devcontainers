@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 using Nuke.Common;
 using Nuke.Common.IO;
+
 using Serilog;
 
 [SuppressMessage("ReSharper", "AllUnderscoreLocalParameterName")]
@@ -40,7 +41,7 @@ sealed partial class Build
 		});
 
 	[UsedImplicitly]
-    private Target BuildTemplate => _ => _
+	private Target BuildTemplate => _ => _
 		.Requires(() => Template)
 		.Triggers(TestTemplate)
 		.Executes(() => Bash($"{Scripts / "build.sh"} {Template}"));
@@ -50,6 +51,6 @@ sealed partial class Build
 		.Executes(() => Bash($"{Scripts / "test.sh"} {Template}"));
 
 	[UsedImplicitly]
-    private Target PublishTemplate => _ => _
-		.Executes(() => Devcontainer($"templates publish {TemplatesRoot} --namespace {GitHubNamespace}/templates"));
+	private Target PublishTemplate => _ => _
+		.Executes(() => Devcontainer($"templates publish {TemplatesRoot / "src"} --namespace {GitHubNamespace}/templates"));
 }
