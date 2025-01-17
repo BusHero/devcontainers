@@ -4,7 +4,7 @@
 		"ghcr.io/bushero/devcontainers/features/nuke:latest": {},
 		"ghcr.io/bushero/devcontainers/features/devcontainers-cli:1.0.0": {},
 		"ghcr.io/devcontainers/features/docker-in-docker:latest": {},
-		"ghcr.io/devcontainers/features/dotnet:latest": {},
+		"ghcr.io/devcontainers/features/dotnet:2.2.0": {},
 		"ghcr.io/devcontainers/features/github-cli:latest": {}
 	},
 	"customizations": {
@@ -22,6 +22,6 @@
 	"postCreateCommand": {
 		"restore": "dotnet restore build/_build.csproj",
 		"git 1": "sudo git config --system --add safe.directory $(pwd)/.git && git fetch",
-        "git 2": "sudo git config --system --add safe.directory $(pwd)"
+		"git 2": "sudo git config --system --add safe.directory $(pwd)"
 	}
 }
