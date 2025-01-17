@@ -1,0 +1,37 @@
+# Default value of indentation
+defaultIndent: "    "
+
+specialBeginEnd:
+    path:
+        begin: '\\[(node)|(path)|(draw)|(coordinate)|(foreach)|(graph)]'
+        end: ';'
+    specialBeforeCommand: 1
+
+lookForAlignDelims:
+   path:
+      delimiterRegEx: '(edge|node\h*\{[0-9,A-Z]+\})'
+
+noAdditionalIndent:
+  abstract:
+    body: 1
+  keyEqualsValuesBracesBrackets: 1
+
+verbatimEnvironments:
+  algorithmic: 1
+
+fineTuning:
+  arguments:
+    before: '>=|='
+
+indentRules:
+    draw:
+        body: "    "
+    defFunction:
+        body: "    "
+
+commandCodeBlocks:
+    stringsAllowedBetweenArguments:
+      -
+        amalgamate: 0
+      - '\\x\/\\y'
+      - 'in'
