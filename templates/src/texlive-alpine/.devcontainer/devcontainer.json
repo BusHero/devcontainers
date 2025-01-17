@@ -52,7 +52,7 @@
 				"latex-workshop.latex.bibDirs": [
 					"/workspaces/"
 				],
-				"ltex.ltex-ls.path": "/ltex-ls-15.2.0",
+				"ltex.ltex-ls.path": "/ltex-ls",
 				"ltex.java.path": "/usr/",
 				"ltex.additionalRules.languageModel": "en",
 				"ltex.completionEnabled": true,
