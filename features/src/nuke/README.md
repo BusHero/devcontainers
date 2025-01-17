@@ -4,7 +4,7 @@
 
 ```json
 "features": {
-    "ghcr.io/bushero/devcontainers/features/nuke:1.5.1": {}
+    "ghcr.io/bushero/devcontainers/features/nuke:1.5.2": {}
 }
 ```
 
