@@ -12,6 +12,7 @@ WORKDIR /
 ARG ltex_version=
 ADD https://github.com/valentjn/ltex-ls/releases/download/${ltex_version}/ltex-ls-${ltex_version}.tar.gz /ltex-ls.tar.gz
 RUN tar -xzf /ltex-ls.tar.gz \
+    && mv ltex-ls-${ltex_version} /ltex-ls \
     && rm ltex-ls.tar.gz
 
 ENV latexindent_settings_file="mysettings.yaml"
