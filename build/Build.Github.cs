@@ -12,7 +12,7 @@ partial class Build
 	private const string REMOTE = "origin";
 	private const string REMOTE_MAIN_BRANCH = $"remotes/{REMOTE}/{MAIN_BRANCH}";
 
-	[PathExecutable("git")] readonly Tool Git = null!;
+	[LocalPath("git")] readonly Tool Git = null!;
 
 	[GitRepository] private readonly GitRepository Repository = null!;
 

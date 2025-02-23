@@ -64,7 +64,7 @@ sealed partial class Build
 			var command = string.Join(" ", commands);
 			Log.Information("{command}", command);
 
-			Devcontainer(command, customLogger: DevcontainerLog);
+			Devcontainer(command, logger: DevcontainerLog);
 		});
 
 	[UsedImplicitly]

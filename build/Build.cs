@@ -21,7 +21,7 @@ public sealed partial class Build : NukeBuild
 
     private bool ShouldUpdateVersion = true;
 
-    [PathExecutable("bash")] private readonly Tool Bash = null!;
+    [LocalPath("bash")] private readonly Tool Bash = null!;
 
     private Version GetFeatureVersion(string pathToFeatureDefinition)
     {
@@ -115,7 +115,7 @@ public sealed partial class Build : NukeBuild
             await Cli.Wrap("git")
                 .WithArguments(args => args
                     .Add("add")
-                    .Add(FeatureRoot))
+                    .Add(FeatureRoot.ToString()))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(x => Log.Information("{git_msg}", x)))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(x => Log.Error("{git_msg}", x)))
                 .ExecuteAsync();
@@ -124,7 +124,7 @@ public sealed partial class Build : NukeBuild
                 .WithArguments(args => args
                     .Add("commit")
                     .Add("--include")
-                    .Add(FeatureRoot)
+                    .Add(FeatureRoot.ToString())
                     .Add("--message")
                     .Add($"Release: feature {Feature} {version}"))
                 .WithEnvironmentVariables(dict =>

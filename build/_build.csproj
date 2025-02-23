@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.4" />
-    <PackageReference Include="Nuke.Common" Version="6.3.0" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.1" />
+    <PackageReference Include="CliWrap" Version="3.8.0" />
+    <PackageReference Include="Nuke.Common" Version="9.0.4" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
