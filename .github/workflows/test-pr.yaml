@@ -106,8 +106,8 @@ jobs:
       - run: git switch -c test-branch
       - run: |
           dotnet nuget add source \
+            https://nuget.pkg.github.com/BusHero/index.json \
             --name github \
-            --source https://nuget.pkg.github.com/BusHero/index.json \
             --username BusHero \
             --password ${{ secrets.GITHUB_TOKEN }}
           dotnet restore
