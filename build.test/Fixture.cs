@@ -215,7 +215,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 configure(args
                     .Add("run")
                     .Add("--project")
-                    .Add(RootDirectory / "build"))
+                    .Add((RootDirectory / "build").ToString()))
                 .Add("--no-logo");
 
                 if (skip)
@@ -465,7 +465,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("--bare")
                 .Add("--no-hardlinks")
                 .Add("--single-branch")
-                .Add(RootDirectory)
+                .Add(RootDirectory.ToString())
                 .Add(path))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
             .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
