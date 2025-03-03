@@ -22,7 +22,8 @@ COPY common/mysettings.yaml "${texlive_bin}/config/${latexindent_settings_file}"
 RUN echo -e "paths: \n\
     - ${texlive_bin}/config/${latexindent_settings_file}" >> "${LATEXINDENT_CONFIG}"
 
-RUN tlmgr install latexindent \
+RUN tlmgr update --self \
+    && tlmgr install latexindent \
     && tlmgr install latexmk
 
 COPY common/packages /tmp/packages
