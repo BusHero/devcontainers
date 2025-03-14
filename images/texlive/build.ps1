@@ -1,4 +1,4 @@
-$texlive_version = '2024'
+$texlive_version = '2025'
 $alpine_version = '3.20'
 
 $schemes = @(

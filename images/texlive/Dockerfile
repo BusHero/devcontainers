@@ -35,8 +35,8 @@ WORKDIR /root
 COPY common/texlive.profile /root/texlive.profile
 COPY common/install-texlive.sh /root/install-texlive.sh
 
-ARG texlive_version=2024
-ARG scheme=basic
+ARG texlive_version=
+ARG scheme=
 RUN echo "selected_scheme scheme-${scheme}" >> /root/texlive.profile \
     && sh /root/install-texlive.sh $texlive_version \
     && rm -f /root/texlive.profile \
