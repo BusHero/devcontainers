@@ -3,7 +3,7 @@
 # Adapted from
 # https://raw.githubusercontent.com/pandoc/dockerfiles/8fdaeb6e3652438c3b657cc72def1109e42f641f/common/latex/install-texlive.sh
 
-default_version=2024
+default_version=2025
 tlversion=${1:-"$default_version"}
 installer_archive=install-tl-unx.tar.gz
 
