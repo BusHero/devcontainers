@@ -4,6 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"args": {
 			"scheme": "${templateOption:texliveScheme}",
+			"texliveVersion": "${templateOption:texliveVersion}",
 			"ltex_version": "15.2.0"
 		}
 	},
