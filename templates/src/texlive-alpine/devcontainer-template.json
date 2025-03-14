@@ -21,6 +21,11 @@
                 "basic"
             ],
             "default": "basic"
+        },
+        "texliveVersion": {
+            "type": "string",
+            "description": "The version of TexLive to install",
+            "default": "2025"
         }
     }
 }

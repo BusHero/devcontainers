@@ -1,5 +1,6 @@
 ARG scheme=minimal
-FROM bus1hero/texlive:2024-${scheme}-alpine.3.20
+ARG texliveVersion=2025
+FROM bus1hero/texlive:${texliveVersion}-${scheme}-alpine.3.20
 
 RUN apk update \
     && apk upgrade \
