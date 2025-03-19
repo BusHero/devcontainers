@@ -4,7 +4,7 @@
 
 ```json
 "features": {
-    ghcr.io/bushero/devcontainers/features/texlive:3.1.0: {}
+    "ghcr.io/bushero/devcontainers/features/texlive:3.1.0": {}
 }
 ```
 
@@ -17,7 +17,7 @@
 
 ## Customizations
 
-### VS Code Extenssions
+### VS Code Extensions
 
 - `james-yu.latex-workshop`
 
