@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
 
-tmux -V
+zellij --version
