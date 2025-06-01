@@ -1,10 +1,10 @@
-# tmux
+# zellij
 
 # 
 
 ```json
 "features": {
-    "ghcr.io/bushero/devcontainers/features/tmux:1.0.0": {}
+    "ghcr.io/bushero/devcontainers/features/zellij:1.1.0": {}
 }
 ```
 
