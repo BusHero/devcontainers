@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainerFeature.schema.json",
-	"id": "tmux",
+	"id": "zellij",
 	"version": "1.0.0",
-	"name": "tmux"
+	"name": "zellij"
 }
