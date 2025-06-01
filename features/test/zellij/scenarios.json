@@ -1,0 +1,8 @@
+{
+	"alpine": {
+		"image": "alpine:latest",
+		"features": {
+			"zellij": {}
+		}
+	}
+}
