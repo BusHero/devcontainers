@@ -1,147 +1,106 @@
 using System.Text.Json;
 using CliWrap;
 using CliWrap.Builders;
+using GitSnapshotter;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Xunit.Abstractions;
 
 namespace build.test;
 
-internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
+/// <summary>
+/// Runs build targets against this repository and puts the repository back afterwards.
+/// </summary>
+/// <remarks>
+/// The snapshot taken on construction records HEAD, branches and their upstreams, remotes and their URLs,
+/// tags and the working tree (tracked and untracked, non-ignored files). Disposing the fixture restores all of it,
+/// so commits, tags, upstream configuration, the overridden origin URL and any files a test created are undone,
+/// whether the test passed or failed.
+/// </remarks>
+internal sealed class CustomFixture : IAsyncDisposable
 {
-    private readonly List<string> _tempFiles = [];
+    private static readonly SnapshotOptions WithWorkingTree = new() { IncludeWorkingTree = true };
 
-    private string? _commitToRestore;
+    private static readonly RestoreOptions DiscardChanges = new() { Force = true };
 
-    public async Task SaveCommit(string commit)
+    private readonly ITestOutputHelper _output;
+
+    private readonly SnapshotScope _scope;
+
+    private readonly List<string> _createdDirectories = [];
+
+    public CustomFixture(ITestOutputHelper output)
     {
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("rev-parse")
-                .Add(commit))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => _commitToRestore = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
+        _output = output;
+        _scope = GitRepository.Preserve(RootDirectory, WithWorkingTree, DiscardChanges);
     }
-
-    public bool KeepFiles { get; init; }
-
-    public bool KeepTags { get; init; }
-
-    public bool KeepCommits { get; init; }
 
     public AbsolutePath RootDirectory => NukeBuild.RootDirectory;
 
-    public async ValueTask DisposeAsync()
+    /// <summary>Takes a snapshot of the repository's references, without the working tree.</summary>
+    public GitRepositorySnapshot TakeSnapshot() => GitRepository.GetSnapshot(RootDirectory);
+
+    public ValueTask DisposeAsync()
     {
-        if (!KeepTags)
+        try
         {
-            await DeleteGitTags();
+            _scope.Dispose();
         }
-
-        if (!KeepCommits)
+        finally
         {
-            await RevertCommits(_commitToRestore);
-        }
-
-        if (!KeepFiles)
-        {
-            RemoveTempFiles(_tempFiles);
-            await RestoreFiles(_tempFiles);
-        }
-
-        if (_originalOrigin is not null)
-        {
-            await ResetOrigin(_originalOrigin);
-        }
-    }
-
-    private async Task RestoreFiles(IReadOnlyCollection<string> files)
-    {
-        var repoFiles = files
-            .Where(x => x.StartsWith(RootDirectory))
-            .ToList();
-        if (repoFiles.Count == 0)
-        {
-            return;
-        }
-
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("restore")
-                .Add("--staged")
-                .Add("--progress")
-                .Add(repoFiles))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .WithValidation(CommandResultValidation.None)
-            .ExecuteAsync();
-    }
-
-    private async Task RevertCommits(string? commit)
-    {
-        if (string.IsNullOrEmpty(commit))
-        {
-            return;
-        }
-
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("reset")
-                .Add("--no-refresh")
-                .Add("--soft")
-                .Add(commit))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
-    }
-
-    private void RemoveTempFiles(IReadOnlyCollection<string> tempFiles)
-    {
-        if (tempFiles.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var file in tempFiles)
-        {
-            if (Directory.Exists(file))
+            // Restoring deletes the files a test created but not the folders they were in. An empty folder under
+            // features/src would still be picked up as a feature, so remove the ones this fixture created.
+            foreach (var directory in _createdDirectories)
             {
-                Directory.Delete(file, true);
+                DeleteIfEmpty(directory);
             }
-            else if (File.Exists(file))
+
+            if (Directory.Exists(GitOriginPath))
             {
-                File.Delete(file);
+                Directory.Delete(GitOriginPath, true);
             }
         }
+
+        return ValueTask.CompletedTask;
     }
 
-    private void CreateTempDirectory(string path)
+    private static void DeleteIfEmpty(string directory)
     {
-        Directory.CreateDirectory(path);
-        _tempFiles.Add(path);
+        if (!Directory.Exists(directory))
+        {
+            return;
+        }
+
+        foreach (var child in Directory.GetDirectories(directory))
+        {
+            DeleteIfEmpty(child);
+        }
+
+        if (!Directory.EnumerateFileSystemEntries(directory).Any())
+        {
+            Directory.Delete(directory);
+        }
     }
 
     public string CreateTempFile()
     {
         var path = RootDirectory / $"tmpFile{Guid.NewGuid():N}";
 
-        CreateTempFile(path);
+        using var _ = File.Create(path);
 
         return path;
-    }
-
-    private void CreateTempFile(string path)
-    {
-        using var _ = File.Create(path);
-        _tempFiles.Add(path);
     }
 
     public async Task CreateFeatureConfig(
         Feature featureName,
         Version version)
     {
-        CreateTempDirectory(featureName.GetRoot(RootDirectory));
+        var featureRoot = featureName.GetRoot(RootDirectory);
+        if (!Directory.Exists(featureRoot))
+        {
+            Directory.CreateDirectory(featureRoot);
+            _createdDirectories.Add(featureRoot);
+        }
 
         var featureConfig = featureName.GetConfig(RootDirectory);
         var json = $$"""
@@ -222,7 +181,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                     args.Add("--skip");
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -235,7 +194,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("add")
                 .Add(path))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         await Cli.Wrap("git")
@@ -253,7 +212,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 env.Set("GIT_AUTHOR_EMAIL", "noreply@github.com");
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -267,33 +226,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add(tag)
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
-    }
-
-    private async Task DeleteGitTags()
-    {
-        var tags = new List<string>();
-
-        await Cli.Wrap("git")
-            .WithArguments("tag")
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(tags.Add))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
-
-        var tagsToDelete = tags.Except(_originalTags).ToList();
-        if (tagsToDelete.Count == 0)
-        {
-            return;
-        }
-
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("tag")
-                .Add("--delete")
-                .Add(tagsToDelete))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
     }
 
@@ -317,7 +250,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 }
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => commitMessage = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return commitMessage;
@@ -345,7 +278,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 }
             })
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => tag = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return tag;
@@ -364,21 +297,10 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("-r")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(modifiedFiles.Add))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return modifiedFiles;
-    }
-
-    private readonly List<string> _originalTags = [];
-
-    internal async Task SaveTags()
-    {
-        await Cli.Wrap("git")
-            .WithArguments("tag")
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(_originalTags.Add))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
     }
 
     public async Task<string> GetGitHash(string latestGitTag)
@@ -390,7 +312,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("rev-parse")
                 .Add(latestGitTag))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => hash = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return hash;
@@ -407,7 +329,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("--format=%aN")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => name = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return name;
@@ -424,7 +346,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("--format=%aE")
                 .Add(commit))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(x => email = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
 
         return email;
@@ -432,29 +354,17 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
 
     private const string REMOTE = "origin";
 
-    private string? _originalOrigin;
+    public string GitOriginPath { get; } = Path.Combine(Path.GetTempPath(), $"repo_{Guid.NewGuid():N}");
 
-    public string GitOriginPath { get; } = Path.Combine("/tmp", $"repo_{Guid.NewGuid():N}");
-
+    /// <summary>
+    /// Points <c>origin</c> at a fresh bare clone of this repository, so the release can push without reaching GitHub.
+    /// The original URL comes back when the fixture is disposed.
+    /// </summary>
     public async Task OverrideOrigin()
     {
-        CreateTempDirectory(GitOriginPath);
-
-        _originalOrigin = await GetRemoteUrl(REMOTE);
-
         await SetRemoteUrl(REMOTE, GitOriginPath);
 
         await CloneBareRepo(GitOriginPath);
-    }
-
-    private async Task ResetOrigin(string? url)
-    {
-        if (url is null)
-        {
-            return;
-        }
-
-        await SetRemoteUrl(REMOTE, url);
     }
 
     private async Task CloneBareRepo(string path)
@@ -468,24 +378,8 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add(RootDirectory)
                 .Add(path))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
-    }
-
-    private async Task<string> GetRemoteUrl(string remote)
-    {
-        var remoteUrl = string.Empty;
-
-        await Cli.Wrap("git")
-            .WithArguments(args => args
-                .Add("remote")
-                .Add("get-url")
-                .Add(remote))
-            .WithStandardOutputPipe(PipeTarget.ToDelegate(x => remoteUrl = x))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
-            .ExecuteAsync();
-
-        return remoteUrl;
     }
 
     private async Task SetRemoteUrl(
@@ -501,7 +395,7 @@ internal sealed class CustomFixture(ITestOutputHelper output) : IAsyncDisposable
                 .Add("set-url")
                 .Add(remote)
                 .Add(url))
-            .WithStandardErrorPipe(PipeTarget.ToDelegate(output.WriteLine))
+            .WithStandardErrorPipe(PipeTarget.ToDelegate(_output.WriteLine))
             .ExecuteAsync();
     }
 }

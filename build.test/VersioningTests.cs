@@ -1,17 +1,14 @@
 using FluentAssertions.Execution;
+using GitSnapshotter;
 using Nuke.Common.IO;
 using Xunit.Abstractions;
 
 namespace build.test;
 
+[Collection(RepositoryCollection.Name)]
 public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
 {
-    private readonly CustomFixture _fixture = new(output)
-    {
-        KeepCommits = false,
-        KeepFiles = false,
-        KeepTags = false,
-    };
+    private readonly CustomFixture _fixture = new(output);
 
     [Theory, AutoData]
     public async Task TwoCommits_FeatAndChore_UpdatesMajor(
@@ -53,10 +50,11 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
     [Theory, AutoData]
     public async Task WrongTagNameAbort(
         Feature feature,
-        Version version)
+        Version version,
+        Tag unrelatedTag)
     {
+        await _fixture.AddGitTag(unrelatedTag);
         await _fixture.CreateFeatureConfig(feature, version);
-
         await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
 
         await _fixture.RunVersionTarget(feature);
@@ -332,11 +330,78 @@ public sealed class VersioningTests(ITestOutputHelper output) : IAsyncLifetime
         }
     }
 
-    public async Task InitializeAsync()
+    [Theory, AutoData]
+    public async Task VersionTargetDoesNotChangeReferences(
+        Feature feature,
+        Version version)
     {
-        await _fixture.SaveCommit("HEAD");
-        await _fixture.SaveTags();
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        var before = _fixture.TakeSnapshot();
+
+        await _fixture.RunVersionTarget(feature);
+
+        var diff = SnapshotDiff.Compare(before, _fixture.TakeSnapshot());
+        diff.Changes.Should().BeEmpty();
     }
+
+    [Theory, AutoData]
+    public async Task ReleaseChangesOnlyTheExpectedReferences(
+        Feature feature,
+        Version version)
+    {
+        await _fixture.OverrideOrigin();
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        var before = _fixture.TakeSnapshot();
+
+        await _fixture.RunReleaseFeature(feature);
+
+        var after = _fixture.TakeSnapshot();
+        var head = await _fixture.GetGitHash("HEAD");
+        var branch = before.Head;
+        var changes = SnapshotDiff.Compare(before, after).Changes;
+        using (new AssertionScope())
+        {
+            before.IsHeadDetached.Should().BeFalse("the release pushes the checked-out branch");
+            changes.Should().NotContain(c => c.Category == ChangeCategory.Head, "the release stays on the same branch");
+            changes.Should().NotContain(c => c.Category == ChangeCategory.Remote, "the release doesn't change remotes");
+            changes.Should().NotContain(c => c.Category == ChangeCategory.Reference);
+            changes.Should().NotContain(c => c.Kind == SnapshotChangeKind.Removed);
+            changes.Where(c => c.Category == ChangeCategory.Branch).Should().ContainSingle()
+                .Which.Should().BeEquivalentTo(new { Kind = SnapshotChangeKind.Modified, Name = branch, After = head });
+            changes.Where(c => c.Category == ChangeCategory.Tag).Should().ContainSingle()
+                .Which.Should().BeEquivalentTo(new
+                {
+                    Kind = SnapshotChangeKind.Added,
+                    Name = feature.GetTag(version.IncrementMinor()).Name,
+                });
+            changes.Where(c => c.Category == ChangeCategory.RemoteBranch).Should().ContainSingle()
+                .Which.Should().BeEquivalentTo(new { Name = $"origin/{branch}", After = head });
+            after.Branches.Single(b => b.Name == branch).TrackedBranch.Should().Be($"origin/{branch}");
+        }
+    }
+
+    [Theory, AutoData]
+    public async Task ReleaseWithoutChangesLeavesReferencesUntouched(
+        Feature feature,
+        Version version)
+    {
+        await _fixture.CreateFeatureConfig(feature, version);
+        await _fixture.AddAndCommit(CommitMessage.New("feat"), feature.GetRoot(_fixture.RootDirectory));
+        await _fixture.AddGitTag(feature.GetTag(version));
+        await _fixture.OverrideOrigin();
+        var before = _fixture.TakeSnapshot();
+
+        await _fixture.RunReleaseFeature(feature);
+
+        var diff = SnapshotDiff.Compare(before, _fixture.TakeSnapshot());
+        diff.Changes.Should().BeEmpty();
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync() => await _fixture.DisposeAsync();
 }
