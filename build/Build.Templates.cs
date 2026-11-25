@@ -23,7 +23,7 @@ sealed partial class Build
 			var templates = Directory
 				.GetDirectories(TemplatesRoot / "src")
 				.Select(x => RootDirectory.GetRelativePathTo(x))
-				.Where(feature => Changes.Any(change => change.StartsWith(feature)))
+				.Where(template => All || Changes.Any(change => change.StartsWith(template)))
 				.Select(x => x.ToString())
 				.Select(Path.GetFileName)
 				.ToList();

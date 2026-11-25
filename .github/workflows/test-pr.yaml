@@ -2,6 +2,14 @@ name: "Test Template & Features"
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      all:
+        description: "Test every feature & template, not only the changed ones"
+        type: boolean
+        default: true
+  schedule:
+    # Weekly full run (Monday 03:17 UTC) to catch breakage from upstream base images.
+    - cron: "17 3 * * 1"
 
 jobs:
   changes:
@@ -26,15 +34,22 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
       - name: find changed templates & features
         id: changed_files
-        run: ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
+        env:
+          ALL: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.all) }}
+        run: |
+          if [ "$ALL" = "true" ]; then
+            ./build.sh ListTemplatesAndFeatures -All -GithubOutput "$GITHUB_OUTPUT"
+          else
+            ./build.sh ListTemplatesAndFeatures -GithubOutput "$GITHUB_OUTPUT"
+          fi
 
   test-templates:
     if: ${{ needs.changes.outputs.templates }}
     needs: [changes]
     name: Test template ${{ matrix.template }}
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         template: ${{ fromJSON(needs.changes.outputs.templates) }}
     steps:
@@ -54,15 +69,16 @@ jobs:
         run: npm install -g @devcontainers/cli
       - name: Run test for '${{ matrix.template }}'
         id: smoke_test
-        run: ./build.sh TestTemplate -Template '${{ matrix.template }}'
+        # BuildTemplate brings the dev container up, then triggers TestTemplate.
+        run: ./build.sh BuildTemplate -Template '${{ matrix.template }}'
 
   test-features:
     if: ${{ needs.changes.outputs.features }}
     needs: [changes]
     name: Test feature ${{ matrix.feature }}
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         feature: ${{ fromJSON(needs.changes.outputs.features) }}
     steps:
